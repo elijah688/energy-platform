@@ -1,0 +1,8 @@
+publish
+bin
+obj
+.env
+dist
+node_modules
+.angular
+
