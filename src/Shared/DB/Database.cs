@@ -195,6 +195,51 @@ namespace Shared.DB
 
 
 
+        public static void ExecuteEnergyTransaction(EnergyTransaction tx)
+        {
+            using var conn = GetConnection();
+            using var tran = conn.BeginTransaction();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                Transaction = tran
+            };
+
+
+
+            cmd.CommandText = @"
+        UPDATE users
+        SET 
+            balance = balance - @totalPrice,
+            energy_stored = energy_stored + @energyAmount,
+            updated_at = NOW()
+        WHERE id = @buyerId;
+
+        UPDATE users
+        SET 
+            balance = balance + @totalPrice,
+            energy_stored = energy_stored - @energyAmount,
+            updated_at = NOW()
+        WHERE id = @sellerId;
+
+        INSERT INTO transactions (
+            seller_id, buyer_id, energy_amount, price_per_kwh, total_price, created_at
+        ) VALUES (
+            @sellerId, @buyerId, @energyAmount, @pricePerKwh, @totalPrice, NOW()
+        );
+    ";
+
+            cmd.Parameters.AddWithValue("buyerId", tx.BuyerId);
+            cmd.Parameters.AddWithValue("sellerId", tx.SellerId);
+            cmd.Parameters.AddWithValue("energyAmount", tx.EnergyAmount);
+            cmd.Parameters.AddWithValue("pricePerKwh", tx.PricePerKwh);
+            cmd.Parameters.AddWithValue("totalPrice", tx.TotalPrice);
+
+            cmd.ExecuteNonQuery();
+            tran.Commit();
+        }
+
+
     }
 }
 
