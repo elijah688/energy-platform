@@ -17,18 +17,20 @@ namespace Shared.DB
             return conn;
         }
 
-        public static List<Generator> GetGeneratorsByOwner(Guid ownerId, int limit = 100, int offset = 0)
+
+
+        public static List<Generator> GetGenerators(int limit = 100, int offset = 0)
         {
             var generators = new List<Generator>();
 
             using var conn = GetConnection();
             using var cmd = new NpgsqlCommand(
-                "SELECT id, type, production_rate, owner_id, status, last_generated_at " +
-                "FROM generators WHERE owner_id = @ownerId " +
-                "ORDER BY id " +
-                "LIMIT @limit OFFSET @offset", conn
+                @"
+                    SELECT id, type, production_rate, owner_id, status, last_generated_at
+                    FROM generators
+                    ORDER BY created_at, id
+                    LIMIT @limit OFFSET @offset", conn
             );
-            cmd.Parameters.AddWithValue("ownerId", ownerId);
             cmd.Parameters.AddWithValue("limit", limit);
             cmd.Parameters.AddWithValue("offset", offset);
 
@@ -48,8 +50,7 @@ namespace Shared.DB
 
             return generators;
         }
-
-        public static void AddGenerators(List<Generator> generators)
+        public static void UpsertGenerators(List<Generator> generators)
         {
             if (generators.Count == 0) return;
 
@@ -62,8 +63,15 @@ namespace Shared.DB
             };
 
             cmd.CommandText = @"
-        INSERT INTO generators (id, type, production_rate, owner_id, status, last_generated_at)
-        VALUES (@id, @type, @rate, @ownerId, @status, @lastGeneratedAt)
+                INSERT INTO generators (id, type, production_rate, owner_id, status, last_generated_at, created_at, updated_at)
+                VALUES (@id, @type, @rate, @ownerId, @status, @lastGeneratedAt, NOW(), NOW())
+                ON CONFLICT (id) DO UPDATE
+                SET type = EXCLUDED.type,
+                    production_rate = EXCLUDED.production_rate,
+                    owner_id = EXCLUDED.owner_id,
+                    status = EXCLUDED.status,
+                    last_generated_at = EXCLUDED.last_generated_at,
+                    updated_at = NOW()
     ";
 
             foreach (var gen in generators)
@@ -82,7 +90,8 @@ namespace Shared.DB
             tran.Commit();
         }
 
-        public static void AddUsers(List<User> users)
+
+        public static void UpsertUser(List<User> users)
         {
             if (users.Count == 0) return;
 
@@ -95,9 +104,14 @@ namespace Shared.DB
             };
 
             cmd.CommandText = @"
-                INSERT INTO users (id, name, balance, energy_stored, created_at)
-                VALUES (@id, @name, @balance, @energyStored, @createdAt)
-            ";
+        INSERT INTO users (id, name, balance, energy_stored, created_at, updated_at)
+        VALUES (@id, @name, @balance, @energyStored, @createdAt, NOW())
+        ON CONFLICT (id) DO UPDATE
+        SET name = EXCLUDED.name,
+            balance = EXCLUDED.balance,
+            energy_stored = EXCLUDED.energy_stored,
+            updated_at = NOW()
+    ";
 
             foreach (var user in users)
             {
@@ -113,6 +127,7 @@ namespace Shared.DB
 
             tran.Commit();
         }
+
 
     }
 }

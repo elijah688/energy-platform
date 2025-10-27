@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     balance NUMERIC(12,2) NOT NULL DEFAULT 0,
     energy_stored NUMERIC(12,2) NOT NULL DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
@@ -23,7 +24,9 @@ CREATE TABLE IF NOT EXISTS generators (
     owner_id UUID NOT NULL,
     status TEXT NOT NULL DEFAULT 'active',
     last_generated_at TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES users(id)
+    FOREIGN KEY (owner_id) REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_generators_owner ON generators(owner_id);
