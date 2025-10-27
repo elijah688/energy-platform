@@ -50,7 +50,7 @@ public class DBTest
             EnergyStored = 50.0m,
         };
 
-        DB.UpsertUser([user]);
+        DB.UpsertUsers([user]);
         DB.UpsertGenerators(generators);
         var res = DB.GetGenerators();
 

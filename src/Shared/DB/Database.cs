@@ -91,7 +91,7 @@ namespace Shared.DB
         }
 
 
-        public static void UpsertUser(List<User> users)
+        public static void UpsertUsers(List<User> users)
         {
             if (users.Count == 0) return;
 
