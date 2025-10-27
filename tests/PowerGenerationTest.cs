@@ -1,16 +1,20 @@
 ﻿
 using Shared.Model;
 using Shared.DB;
+using GeneratorDaemon.src.GeneratorProcess;
+using System.Threading.Tasks;
+using System.Text.Json.Nodes;
+using Shared.Utils;
 namespace tests;
 
-using System.Text.Json;
 
-
+[Collection("Sequential")]
 public class PowerGeneration
 {
     [Fact]
-    public void Test2()
+    public async Task Test2()
     {
+        TestUtils.TruncateAll();
         var users = new List<User>
             {
                 new User
@@ -97,6 +101,21 @@ public class PowerGeneration
         };
 
         DB.UpsertGenerators(generators);
+
+        var usersFromDB = DB.GetUsers();
+        var m = usersFromDB.ToDictionary(u => u.Id, u => u.EnergyStored);
+        Assert.Equal(0.00m, m[user1]);
+        Assert.Equal(0.00m, m[user2]);
+        Assert.Equal(0.00m, m[user3]);
+
+
+        await new GeneratorProcess().RunAsync();
+        usersFromDB = DB.GetUsers();
+        m = usersFromDB.ToDictionary(u => u.Id, u => u.EnergyStored);
+        Assert.Equal(80.70m, m[user1]);
+        Assert.Equal(73.70m, m[user2]);
+        Assert.Equal(60.00m, m[user3]);
+
 
 
 

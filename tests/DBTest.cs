@@ -3,13 +3,14 @@ using Shared.Model;
 using Shared.DB;
 namespace tests;
 
-using System.Text.Json;
-
+[Collection("Sequential")]
 public class DBTest
 {
     [Fact]
     public void Test1()
     {
+        TestUtils.TruncateAll();
+
         var ownerId = Guid.Parse("5a529b31-7e7c-49da-b377-e2bc8bb8da0f");
 
         var generators = new List<Generator>{

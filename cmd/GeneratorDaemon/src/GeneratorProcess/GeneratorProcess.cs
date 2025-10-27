@@ -1,6 +1,7 @@
 using System.Threading.Channels;
 using Shared.Model;
 using Shared.DB;
+using Shared.Utils;
 
 namespace GeneratorDaemon.src.GeneratorProcess
 {

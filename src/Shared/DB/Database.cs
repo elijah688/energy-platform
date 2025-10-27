@@ -175,12 +175,11 @@ namespace Shared.DB
             };
 
             cmd.CommandText = @"
-        INSERT INTO users (id, energy_stored, updated_at)
-        VALUES (@id, @energyStored, NOW())
-        ON CONFLICT (id) DO UPDATE
-        SET energy_stored = users.energy_stored + EXCLUDED.energy_stored,
-            updated_at = NOW()
-    ";
+            UPDATE users
+            SET energy_stored = energy_stored + @energyStored,
+                updated_at = NOW()
+            WHERE id = @id
+            ";
 
             foreach (var update in updates)
             {
