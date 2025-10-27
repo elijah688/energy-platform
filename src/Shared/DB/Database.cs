@@ -10,7 +10,7 @@ namespace Shared.DB
         private static readonly string _connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? "";
 
 
-        private static Npgsql.NpgsqlConnection GetConnection()
+        private static NpgsqlConnection GetConnection()
         {
             var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
@@ -127,6 +127,73 @@ namespace Shared.DB
 
             tran.Commit();
         }
+
+
+        public static List<User> GetUsers(int limit = 100, int offset = 0)
+        {
+            var users = new List<User>();
+
+            using var conn = GetConnection();
+            using var cmd = new NpgsqlCommand(
+                @"SELECT id, name, balance, energy_stored, created_at, updated_at
+          FROM users
+          ORDER BY created_at, id
+          LIMIT @limit OFFSET @offset", conn
+            );
+
+            cmd.Parameters.AddWithValue("limit", limit);
+            cmd.Parameters.AddWithValue("offset", offset);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                users.Add(new User
+                {
+                    Id = reader.GetGuid(0),
+                    Name = reader.GetString(1),
+                    Balance = reader.GetDecimal(2),
+                    EnergyStored = reader.GetDecimal(3),
+                    CreatedAt = reader.GetDateTime(4),
+                    UpdatedAt = reader.GetDateTime(5)
+                });
+            }
+
+            return users;
+        }
+
+
+        public static void UpdateUsersEnergyStore(List<UserEnergyUpdate> updates)
+        {
+            if (updates.Count == 0) return;
+
+            using var conn = GetConnection();
+            using var tran = conn.BeginTransaction();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                Transaction = tran
+            };
+
+            cmd.CommandText = @"
+        INSERT INTO users (id, energy_stored, updated_at)
+        VALUES (@id, @energyStored, NOW())
+        ON CONFLICT (id) DO UPDATE
+        SET energy_stored = users.energy_stored + EXCLUDED.energy_stored,
+            updated_at = NOW()
+    ";
+
+            foreach (var update in updates)
+            {
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("id", update.UserId);
+                cmd.Parameters.AddWithValue("energyStored", update.Energy);
+
+                cmd.ExecuteNonQuery();
+            }
+
+            tran.Commit();
+        }
+
 
 
     }

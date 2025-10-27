@@ -1,7 +1,7 @@
 ﻿
 using Shared.Model;
 using Shared.DB;
-namespace GeneratorDaemon.Tests;
+namespace tests;
 
 using System.Text.Json;
 
