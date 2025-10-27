@@ -194,9 +194,62 @@ namespace Shared.DB
         }
 
 
+        public static List<User> GetUsersByIds(List<Guid> ids)
+        {
+            if (ids.Count == 0) return [];
+
+            var users = new List<User>();
+            using var conn = GetConnection();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn
+            };
+
+            cmd.CommandText = $@"
+            SELECT id, name, balance, energy_stored, created_at, updated_at
+            FROM users
+            WHERE id = ANY(@ids)
+        ";
+            cmd.Parameters.AddWithValue("ids", ids.ToArray());
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                users.Add(new User
+                {
+                    Id = reader.GetGuid(0),
+                    Name = reader.GetString(1),
+                    Balance = reader.GetDecimal(2),
+                    EnergyStored = reader.GetDecimal(3),
+                    CreatedAt = reader.GetDateTime(4),
+                    UpdatedAt = reader.GetDateTime(5)
+                });
+            }
+
+            return users;
+        }
 
         public static void ExecuteEnergyTransaction(EnergyTransaction tx)
         {
+            // Fetch buyer and seller
+            var users = GetUsersByIds(new List<Guid> { tx.BuyerId, tx.SellerId });
+            var buyer = users.FirstOrDefault(u => u.Id == tx.BuyerId)
+                ?? throw new Exception("Buyer not found.");
+            var seller = users.FirstOrDefault(u => u.Id == tx.SellerId)
+                ?? throw new Exception("Seller not found.");
+
+            // Validate transaction
+            if (buyer.Balance < tx.TotalPrice)
+                throw new Exception("Buyer does not have enough balance.");
+            if (seller.EnergyStored < tx.EnergyAmount)
+                throw new Exception("Seller does not have enough energy.");
+
+            // Compute new values
+            var newBuyerBalance = buyer.Balance - tx.TotalPrice;
+            var newBuyerEnergy = buyer.EnergyStored + tx.EnergyAmount;
+            var newSellerBalance = seller.Balance + tx.TotalPrice;
+            var newSellerEnergy = seller.EnergyStored - tx.EnergyAmount;
+
             using var conn = GetConnection();
             using var tran = conn.BeginTransaction();
             using var cmd = new NpgsqlCommand
@@ -205,20 +258,16 @@ namespace Shared.DB
                 Transaction = tran
             };
 
-
-
             cmd.CommandText = @"
         UPDATE users
-        SET 
-            balance = balance - @totalPrice,
-            energy_stored = energy_stored + @energyAmount,
+        SET balance = @newBuyerBalance,
+            energy_stored = @newBuyerEnergy,
             updated_at = NOW()
         WHERE id = @buyerId;
 
         UPDATE users
-        SET 
-            balance = balance + @totalPrice,
-            energy_stored = energy_stored - @energyAmount,
+        SET balance = @newSellerBalance,
+            energy_stored = @newSellerEnergy,
             updated_at = NOW()
         WHERE id = @sellerId;
 
@@ -235,11 +284,16 @@ namespace Shared.DB
             cmd.Parameters.AddWithValue("pricePerKwh", tx.PricePerKwh);
             cmd.Parameters.AddWithValue("totalPrice", tx.TotalPrice);
 
+            cmd.Parameters.AddWithValue("newBuyerBalance", newBuyerBalance);
+            cmd.Parameters.AddWithValue("newBuyerEnergy", newBuyerEnergy);
+            cmd.Parameters.AddWithValue("newSellerBalance", newSellerBalance);
+            cmd.Parameters.AddWithValue("newSellerEnergy", newSellerEnergy);
+
             cmd.ExecuteNonQuery();
             tran.Commit();
         }
 
-
     }
-}
 
+
+}
