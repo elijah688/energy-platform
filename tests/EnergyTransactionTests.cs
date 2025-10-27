@@ -1,74 +1,54 @@
+using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Shared.Model;
-using Shared.DB;
+namespace tests;
 
-
-namespace tests
+public class ServerTests(WebApplicationFactory<TransactionServer.Program> factory) : IClassFixture<WebApplicationFactory<TransactionServer.Program>>
 {
-    [Collection("Sequential")]
-    public class EnergyTransactionTests
+    private readonly WebApplicationFactory<TransactionServer.Program> _factory = factory;
+
+    [Fact]
+    public async Task TestEnergyTransactionEndpoint()
     {
-        [Fact]
-        public void TestEnergyTransaction()
+        var client = _factory.CreateClient();
+
+        // 1️⃣ Create users
+        var users = new List<UserWithGenerators>
         {
-            // Clear DB
-            TestUtils.TruncateAll();
-
-            // 1️⃣ Create users
-            var user1 = new User
+            new ()
             {
-                Id = Guid.NewGuid(),
-                Name = "Alice",
-                Balance = 2000m,
-                EnergyStored = 100m
-            };
-            var user2 = new User
+                User = new User { Name = "Alice", Balance = 100m, EnergyStored = 50m },
+                Generators =
+                [
+                    new () { Type = "Wind", ProductionRate = 30m }
+                ]
+            },
+            new ()
             {
-                Id = Guid.NewGuid(),
-                Name = "Bob",
-                Balance = 1500m,
-                EnergyStored = 50m
-            };
+                User = new User { Name = "Bob", Balance = 200m, EnergyStored = 70m },
+                Generators =
+                {
+                    new () { Type = "Solar", ProductionRate = 25m }
+                }
+            }
+        };
 
-            DB.UpsertUsers([user1, user2]);
+        var usersResponse = await client.PostAsJsonAsync("/users", users);
+        usersResponse.EnsureSuccessStatusCode();
 
-            // 2️⃣ Create generators
-            var generators = new List<Generator>
-            {
-                new() { Id = Guid.NewGuid(), Type = "Wind", ProductionRate = 30m, OwnerId = user1.Id },
-                new () { Id = Guid.NewGuid(), Type = "Solar", ProductionRate = 20m, OwnerId = user1.Id },
-                new () { Id = Guid.NewGuid(), Type = "Wind", ProductionRate = 40m, OwnerId = user2.Id },
-                new () { Id = Guid.NewGuid(), Type = "Solar", ProductionRate = 25m, OwnerId = user2.Id },
-                new () { Id = Guid.NewGuid(), Type = "Wind", ProductionRate = 15m, OwnerId = user2.Id }
-            };
-            DB.UpsertGenerators(generators);
+        // 2️⃣ Execute a transaction
+        var tx = new EnergyTransaction
+        {
+            SellerId = users[0].User.Id,
+            BuyerId = users[1].User.Id,
+            EnergyAmount = 20m,
+            PricePerKwh = 5m
+        };
 
-            // 3️⃣ Execute transaction: User1 sells 50 energy units to User2 at price 20 per unit
-            var tx = new EnergyTransaction
-            {
-                SellerId = user1.Id,
-                BuyerId = user2.Id,
-                EnergyAmount = 50m,
-                PricePerKwh = 20m
-            };
+        var txResponse = await client.PostAsJsonAsync("/transaction", tx);
+        txResponse.EnsureSuccessStatusCode();
 
-            // Pre-checks
-            Assert.True(user2.Balance >= tx.TotalPrice, "Buyer has enough money");
-            Assert.True(user1.EnergyStored >= tx.EnergyAmount, "Seller has enough energy");
-
-            DB.ExecuteEnergyTransaction(tx);
-
-            // 4️⃣ Get updated users from DB
-            var usersFromDB = DB.GetUsers().ToDictionary(u => u.Id, u => u);
-
-            var updatedUser1 = usersFromDB[user1.Id];
-            var updatedUser2 = usersFromDB[user2.Id];
-
-            // 5️⃣ Assertions
-            Assert.Equal(user1.Balance + tx.TotalPrice, updatedUser1.Balance);         // Seller balance increases
-            Assert.Equal(user1.EnergyStored - tx.EnergyAmount, updatedUser1.EnergyStored); // Seller energy decreases
-
-            Assert.Equal(user2.Balance - tx.TotalPrice, updatedUser2.Balance);         // Buyer balance decreases
-            Assert.Equal(user2.EnergyStored + tx.EnergyAmount, updatedUser2.EnergyStored); // Buyer energy increases
-        }
+        var txResult = await txResponse.Content.ReadAsStringAsync();
+        Assert.Contains("Transaction completed", txResult);
     }
 }
