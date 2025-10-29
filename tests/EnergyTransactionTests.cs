@@ -5,7 +5,8 @@ using Shared.DB;
 
 namespace tests;
 
-public class ServerTests(WebApplicationFactory<TransactionServer.Program> factory) 
+[Collection("Sequential")]
+public class ServerTests(WebApplicationFactory<TransactionServer.Program> factory)
     : IClassFixture<WebApplicationFactory<TransactionServer.Program>>
 {
     private readonly WebApplicationFactory<TransactionServer.Program> _factory = factory;
@@ -13,6 +14,8 @@ public class ServerTests(WebApplicationFactory<TransactionServer.Program> factor
     [Fact]
     public async Task TestEnergyTransactionEndpoint()
     {
+        TestUtils.TruncateAll();
+
         var client = _factory.CreateClient();
 
         // 1️⃣ Create users
