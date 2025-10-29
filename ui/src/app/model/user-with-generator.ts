@@ -6,4 +6,5 @@ import { User } from './user';
 export interface UserWithGenerators {
   user: User;
   generators: Generator[];
+  transactions: []
 }
