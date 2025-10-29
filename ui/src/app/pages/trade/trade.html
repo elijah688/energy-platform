@@ -1,10 +1,9 @@
 <!-- Transaction users row -->
-<div class="transaction-users-row"
-  style="display:flex; gap:1rem; justify-content:center; align-items:center; flex-wrap:wrap;">
+<div class="transaction-users-row">
 
   <!-- Left user -->
   <mat-card class="user-card picked" [class.seller]="sellerIsLeft">
-    <div class="role-label" style="font-weight:bold; text-align:center; color:#d46f8b;">
+    <div class="role-label">
       {{ sellerIsLeft ? 'Seller' : 'Buyer' }}
     </div>
     <div class="user-info">
@@ -14,15 +13,14 @@
     </div>
   </mat-card>
 
-
   <!-- Swap button -->
-  <button mat-raised-button color="primary" (click)="swapSeller()">
+  <button mat-raised-button color="primary" class="swap-button" (click)="swapSeller()">
     {{ sellerIsLeft ? '→' : '←' }}
   </button>
 
   <!-- Right user -->
   <mat-card class="user-card picked" [class.seller]="!sellerIsLeft">
-    <div class="role-label" style="font-weight:bold; text-align:center; color:#d46f8b;">
+    <div class="role-label">
       {{ sellerIsLeft ? 'Buyer' : 'Seller' }}
     </div>
     <div class="user-info">
@@ -34,7 +32,7 @@
 </div>
 
 <!-- Transaction Input -->
-<div style="display:flex; gap:1rem; justify-content:center; margin:1rem 0;">
+<div class="transaction-inputs">
   <mat-form-field appearance="outline">
     <mat-label>Amount (kWh)</mat-label>
     <input matInput type="number" [(ngModel)]="amount" min="0">
@@ -47,7 +45,7 @@
 </div>
 
 <!-- Execute Transaction -->
-<div style="text-align:center; margin-top:1rem;">
+<div class="execute-transaction">
   <button mat-raised-button color="primary" (click)="executeTransaction()">
     Execute Transaction
   </button>

@@ -64,6 +64,7 @@ export class Trade implements OnInit {
     if (user === this.buyer) return user.user.energyStored + this.amount;
     return user.user.energyStored;
   }
+
   executeTransaction() {
     if (!this.seller || !this.buyer || this.amount <= 0 || this.pricePerKwh <= 0) {
       this.snackBar.open('Invalid transaction: amount and price must be greater than 0', 'Close', { duration: 3000 });

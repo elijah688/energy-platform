@@ -1,15 +1,42 @@
 .transaction-users-row
   display: flex
-  gap: 1rem
+  gap: 2rem // extra space between cards and button
   justify-content: center
+  align-items: center
+  flex-wrap: wrap
 
   .user-card
-    flex: 1
+    flex: 1 1 200px // grow but maintain min width
     padding: 1rem
     border-radius: 8px
     box-shadow: 0 3px 6px rgba(0,0,0,0.1)
     transition: transform 0.2s, border 0.2s
+    text-align: center
 
   .user-card.seller
     border: 2px solid #d46f8b // rose accent
     transform: scale(1.05)
+
+  .role-label
+    font-weight: bold
+    margin-bottom: 0.5rem
+    color: #d46f8b
+
+  .swap-button
+    font-size: 2rem
+    min-width: 60px
+    height: 60px
+    border-radius: 50%
+    display: flex
+    align-items: center
+    justify-content: center
+
+.transaction-inputs
+  display: flex
+  gap: 1rem
+  justify-content: center
+  margin: 1rem 0
+
+.execute-transaction
+  text-align: center
+  margin-top: 1rem
