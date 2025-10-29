@@ -293,6 +293,73 @@ namespace Shared.DB
             tran.Commit();
         }
 
+
+        public static List<UserWithGenerators> GetUsersWithGenerators(int limit = 100, int offset = 0)
+        {
+            var result = new List<UserWithGenerators>();
+
+            using var conn = GetConnection();
+            using var cmd = new NpgsqlCommand(@"
+        SELECT u.id, u.name, u.balance, u.energy_stored, u.created_at, u.updated_at,
+               g.id, g.type, g.production_rate, g.owner_id, g.status, g.last_generated_at, g.created_at, g.updated_at
+        FROM users u
+        LEFT JOIN generators g ON g.owner_id = u.id
+        ORDER BY u.created_at, u.id
+        LIMIT @limit OFFSET @offset
+    ", conn);
+
+            cmd.Parameters.AddWithValue("limit", limit);
+            cmd.Parameters.AddWithValue("offset", offset);
+
+            using var reader = cmd.ExecuteReader();
+
+            // Temp dictionary to avoid duplicating users
+            var userDict = new Dictionary<Guid, UserWithGenerators>();
+
+            while (reader.Read())
+            {
+                var userId = reader.GetGuid(0);
+
+                if (!userDict.TryGetValue(userId, out var uwg))
+                {
+                    uwg = new UserWithGenerators
+                    {
+                        User = new User
+                        {
+                            Id = userId,
+                            Name = reader.GetString(1),
+                            Balance = reader.GetDecimal(2),
+                            EnergyStored = reader.GetDecimal(3),
+                            CreatedAt = reader.GetDateTime(4),
+                            UpdatedAt = reader.GetDateTime(5)
+                        }
+                    };
+                    userDict[userId] = uwg;
+                    result.Add(uwg);
+                }
+
+                // If generator exists
+                if (!reader.IsDBNull(6))
+                {
+                    var gen = new Generator
+                    {
+                        Id = reader.GetGuid(6),
+                        Type = reader.GetString(7),
+                        ProductionRate = reader.GetDecimal(8),
+                        OwnerId = reader.GetGuid(9),
+                        Status = reader.GetString(10),
+                        LastGeneratedAt = reader.IsDBNull(11) ? null : reader.GetDateTime(11),
+                        CreatedAt = reader.GetDateTime(12),
+                        UpdatedAt = reader.IsDBNull(13) ? null : reader.GetDateTime(13)
+                    };
+
+                    uwg.Generators.Add(gen);
+                }
+            }
+
+            return result;
+        }
+
     }
 
 

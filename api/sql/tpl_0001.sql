@@ -47,3 +47,33 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE INDEX IF NOT EXISTS idx_transactions_seller ON transactions(seller_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_buyer ON transactions(buyer_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at);
+
+
+-- ========================================================
+-- Seed 10 users with 1 generator each
+-- ========================================================
+-- ========================================================
+-- Seed 10 users with 1 generator each
+-- ========================================================
+
+DO $$
+DECLARE
+    _user_id UUID;
+BEGIN
+    FOR i IN 1..10 LOOP
+        -- Insert user
+        INSERT INTO users (id, name, balance, energy_stored, created_at)
+        VALUES (gen_random_uuid(), 'User ' || i, 100 + i * 10, 50 + i * 5, NOW())
+        RETURNING id INTO _user_id;
+
+        -- Insert generator for the user
+        INSERT INTO generators (id, type, production_rate, owner_id, status, created_at)
+        VALUES (gen_random_uuid(),
+                CASE WHEN i % 2 = 0 THEN 'Wind' ELSE 'Solar' END,
+                20 + i * 2,
+                _user_id,
+                'active',
+                NOW());
+    END LOOP;
+END
+$$;

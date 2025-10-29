@@ -6,9 +6,12 @@ namespace Shared.Model
         public string Type { get; set; } = "";
         public decimal ProductionRate { get; set; }
         public Guid OwnerId { get; set; }
-        public string Status { get; set; } = "";
+        public string Status { get; set; } = "active";
         public DateTime? LastGeneratedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
+
 
     public class User
     {

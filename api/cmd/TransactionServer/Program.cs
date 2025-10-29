@@ -87,6 +87,27 @@ namespace TransactionServer
                     return Results.Problem($"Transaction failed: {ex.Message}");
                 }
             });
+
+
+            app.MapGet("/users-with-generators", (int? limit, int? offset) =>
+                {
+                    try
+                    {
+                        int l = limit ?? 100;
+                        int o = offset ?? 0;
+
+                        var usersWithGens = DB.GetUsersWithGenerators(l, o);
+
+                        return Results.Json(usersWithGens);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Results.Problem($"Error fetching users with generators: {ex.Message}");
+                    }
+                });
+
+
+
             app.Urls.Add($"http://localhost:{port}");
             app.Run();
         }
