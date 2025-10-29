@@ -1,0 +1,54 @@
+<!-- Transaction users row -->
+<div class="transaction-users-row"
+  style="display:flex; gap:1rem; justify-content:center; align-items:center; flex-wrap:wrap;">
+
+  <!-- Left user -->
+  <mat-card class="user-card picked" [class.seller]="sellerIsLeft">
+    <div class="role-label" style="font-weight:bold; text-align:center; color:#d46f8b;">
+      {{ sellerIsLeft ? 'Seller' : 'Buyer' }}
+    </div>
+    <div class="user-info">
+      <div>Name: {{ energy.transactionUsers()[0].user.name }}</div>
+      <div>Balance: {{ projectedBalance(energy.transactionUsers()[0]) }}</div>
+      <div>Energy Stored: {{ projectedEnergy(energy.transactionUsers()[0]) }}</div>
+    </div>
+  </mat-card>
+
+
+  <!-- Swap button -->
+  <button mat-raised-button color="primary" (click)="swapSeller()">
+    {{ sellerIsLeft ? '→' : '←' }}
+  </button>
+
+  <!-- Right user -->
+  <mat-card class="user-card picked" [class.seller]="!sellerIsLeft">
+    <div class="role-label" style="font-weight:bold; text-align:center; color:#d46f8b;">
+      {{ sellerIsLeft ? 'Buyer' : 'Seller' }}
+    </div>
+    <div class="user-info">
+      <div>Name: {{ energy.transactionUsers()[1].user.name }}</div>
+      <div>Balance: {{ projectedBalance(energy.transactionUsers()[1]) }}</div>
+      <div>Energy Stored: {{ projectedEnergy(energy.transactionUsers()[1]) }}</div>
+    </div>
+  </mat-card>
+</div>
+
+<!-- Transaction Input -->
+<div style="display:flex; gap:1rem; justify-content:center; margin:1rem 0;">
+  <mat-form-field appearance="outline">
+    <mat-label>Amount (kWh)</mat-label>
+    <input matInput type="number" [(ngModel)]="amount" min="0">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Price per kWh</mat-label>
+    <input matInput type="number" [(ngModel)]="pricePerKwh" min="0">
+  </mat-form-field>
+</div>
+
+<!-- Execute Transaction -->
+<div style="text-align:center; margin-top:1rem;">
+  <button mat-raised-button color="primary" (click)="executeTransaction()">
+    Execute Transaction
+  </button>
+</div>
