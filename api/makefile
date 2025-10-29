@@ -2,13 +2,13 @@ PROJECT_NAME = EnergyMarket
 CONFIG = Release
 RID = osx-arm64
 
-.PHONY: run clean publish db-up db-down check-db-up migrate db-reset
+.PHONY: server clean publish db-up db-down check-db-up migrate db-reset
 
 # -----------------------------
 # .NET commands
 # -----------------------------
-run:
-	dotnet run -c $(CONFIG) --project src/GeneratorDaemon
+server:
+	dotnet run -c $(CONFIG) --project ./cmd/TransactionServer
 
 clean:
 	dotnet clean

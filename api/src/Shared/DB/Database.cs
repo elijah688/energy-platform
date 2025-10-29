@@ -300,13 +300,13 @@ namespace Shared.DB
 
             using var conn = GetConnection();
             using var cmd = new NpgsqlCommand(@"
-        SELECT u.id, u.name, u.balance, u.energy_stored, u.created_at, u.updated_at,
-               g.id, g.type, g.production_rate, g.owner_id, g.status, g.last_generated_at, g.created_at, g.updated_at
-        FROM users u
-        LEFT JOIN generators g ON g.owner_id = u.id
-        ORDER BY u.created_at, u.id
-        LIMIT @limit OFFSET @offset
-    ", conn);
+                SELECT u.id, u.name, u.balance, u.energy_stored, u.created_at, u.updated_at,
+                    g.id, g.type, g.production_rate, g.owner_id, g.status, g.last_generated_at, g.created_at, g.updated_at
+                FROM users u
+                LEFT JOIN generators g ON g.owner_id = u.id
+                ORDER BY u.created_at, u.id
+                LIMIT @limit OFFSET @offset
+            ", conn);
 
             cmd.Parameters.AddWithValue("limit", limit);
             cmd.Parameters.AddWithValue("offset", offset);

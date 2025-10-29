@@ -1,1 +1,23 @@
-<p>list works!</p>
+@for (user of energy.usersWithGenerators(); track $index) {
+<mat-card class="user-card">
+  <mat-card-title>
+    {{ user.user.name }} — Balance: {{ user.user.balance }} — Energy: {{ user.user.energyStored }}
+  </mat-card-title>
+  <mat-card-content>
+    @for (gen of user.generators; track $index) {
+    <mat-card class="generator-card">
+      <mat-card-title>{{ gen.type }} Generator</mat-card-title>
+      <mat-card-content>
+        Production Rate: {{ gen.productionRate }}<br>
+        Status: {{ gen.status }}<br>
+        Last Generated: {{ gen.lastGeneratedAt || 'Never' }}
+      </mat-card-content>
+    </mat-card>
+    } @empty {
+    <p>No generators for this user.</p>
+    } @end
+  </mat-card-content>
+</mat-card>
+} @empty {
+<p>There are no users.</p>
+} @end

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Shared.DB;
-using Microsoft.AspNetCore.Http;
+﻿using Shared.DB;
 using Shared.Model;
 using System.Text.Json;
 
@@ -11,16 +9,27 @@ namespace TransactionServer
         public static void Main(string[] args)
         {
             // Hardcoded args/config
-            var port = 5050;
+            var port = int.TryParse(Environment.GetEnvironmentVariable("BACKEND_PORT"), out var p) ? p : 5050;
 
             var builder = WebApplication.CreateBuilder();
 
-            var app = builder.Build();
+            builder.Services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy(policy =>
+                    {
+                        policy
+                            .AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+                });
 
             var js = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
+            var app = builder.Build();
+            app.UseCors();
 
             app.MapPost("/users", async (HttpContext context) =>
             {
