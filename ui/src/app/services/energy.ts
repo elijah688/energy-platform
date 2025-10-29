@@ -2,12 +2,12 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { UserWithGenerators } from '../model/user-with-generator';
 import { environment } from '../../environments/environment';
-
 @Injectable({
   providedIn: 'root'
 })
 export class Energy {
   public usersWithGenerators = signal<UserWithGenerators[]>([]);
+  public transactionUsers = signal<UserWithGenerators[]>([]); // selected users for transaction
   private http = inject(HttpClient);
   private apiUrl = `http://localhost:${environment.backendPort}`;
 
@@ -26,7 +26,11 @@ export class Energy {
     this.http
       .get<UserWithGenerators[]>(`${this.apiUrl}/users-with-generators?${params.toString()}`)
       .subscribe({
-        next: users => this.usersWithGenerators.set(users),
+        next: users => {
+          // remove any users already selected for transaction
+          const filtered = users.filter(u => !this.transactionUsers().includes(u));
+          this.usersWithGenerators.set(filtered);
+        },
         error: err => console.error('Failed to fetch users', err)
       });
   }
@@ -41,5 +45,26 @@ export class Energy {
       this.offset -= this.limit;
       this.fetchUsers(this.limit, this.offset);
     }
+  }
+  selectUser(user: UserWithGenerators) {
+    if (this.transactionUsers().length >= 2) return;
+
+    // Add to transactionUsers
+    this.transactionUsers.set([...this.transactionUsers(), user]);
+
+    // Remove from top users list
+    this.usersWithGenerators.set(
+      this.usersWithGenerators().filter(u => u.user.id !== user.user.id)
+    );
+  }
+
+  deselectUser(user: UserWithGenerators) {
+    // Remove from transactionUsers
+    this.transactionUsers.set(
+      this.transactionUsers().filter(u => u.user.id !== user.user.id)
+    );
+
+    // Prepend back to top list
+    this.usersWithGenerators.set([user, ...this.usersWithGenerators()]);
   }
 }

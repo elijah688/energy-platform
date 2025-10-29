@@ -1,7 +1,8 @@
+<!-- Top users grid -->
 <div class="users-grid">
   @for (user of energy.usersWithGenerators(); track $index) {
   <mat-card class="user-card">
-    <!-- Always-visible User Info -->
+    <!-- User Info -->
     <div class="user-info">
       <div>Name: {{ user.user.name }}</div>
       <div>Balance: {{ user.user.balance }}</div>
@@ -10,6 +11,10 @@
       <div>Created At: {{ user.user.createdAt }}</div>
       <div>Updated At: {{ user.user.updatedAt }}</div>
     </div>
+
+    <button mat-raised-button color="primary" (click)="energy.selectUser(user)">
+      Select
+    </button>
 
     <mat-accordion multi>
       <!-- Generators Panel -->
@@ -60,8 +65,36 @@
   }
 </div>
 
+
+
 <!-- Pagination buttons -->
 <div class="pagination">
-  <button mat-raised-button (click)="prevPage()" [disabled]="energy.offset == 0">Previous</button>
-  <button mat-raised-button (click)="nextPage()">Next</button>
+  <button mat-raised-button (click)="energy.prev()" [disabled]="energy.offset === 0">
+    Previous
+  </button>
+  <button mat-raised-button (click)="energy.next()">
+    Next
+  </button>
 </div>
+
+<!-- Selected users for transaction -->
+@if (energy.transactionUsers().length > 0) {
+<div class="transaction-header">
+  <h3>Selected Users for Transaction</h3>
+</div>
+<div class="transaction-users-grid">
+  @for (user of energy.transactionUsers(); track $index) {
+  <mat-card class="user-card picked">
+    <div class="user-info">
+      <div>Name: {{ user.user.name }}</div>
+      <div>Balance: {{ user.user.balance }}</div>
+      <div>Energy Stored: {{ user.user.energyStored }}</div>
+      <div>Id: {{ user.user.id }}</div>
+    </div>
+    <button mat-raised-button color="warn" (click)="energy.deselectUser(user)">
+      Remove
+    </button>
+  </mat-card>
+  }
+</div>
+}

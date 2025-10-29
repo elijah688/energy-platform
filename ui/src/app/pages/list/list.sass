@@ -4,6 +4,7 @@
   gap: 0.25rem
   margin-bottom: 1rem
   font-size: 0.95rem
+  color: #4a3f4a // muted dark rose
 
 .generator-card, .transaction-card
   margin: 0.5rem 0
@@ -11,19 +12,23 @@
   border-radius: 6px
   box-shadow: 0 1px 3px rgba(0,0,0,0.08)
   font-size: 0.9rem
+  background: #fff0f5 // very light rose
 
 mat-accordion
   width: 100%
+  margin-top: 0.75rem // space between button and accordion
   .mat-expansion-panel-header
     border-radius: 6px
     font-weight: 500
     font-size: 0.95rem
+    background: #ffe6f0 // soft rose header
+    color: #4a3f4a
 
 p
   font-style: italic
-  color: rgba(0,0,0,0.6)
+  color: rgba(74,63,74,0.7)
 
-.users-grid
+.users-grid, .transaction-users-grid
   display: grid
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
   gap: 1rem
@@ -35,9 +40,23 @@ p
   padding: 1rem
   border-radius: 8px
   box-shadow: 0 3px 6px rgba(0,0,0,0.1)
+  background: #fff0f5 // light rose base
+
+.user-card.picked
+  background: #ffe6f0 // slightly lighter rose
+  border: 1px solid #d46f8b // rose accent
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08)
 
 .pagination
   display: flex
   justify-content: center
   gap: 1rem
   margin-top: 1rem
+
+.transaction-header
+  text-align: center
+  margin: 1.5rem 0 1rem 0
+  h3
+    margin: 0
+    font-weight: 600
+    color: #4a3f4a // keep it in rose palette
