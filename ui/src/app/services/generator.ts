@@ -22,21 +22,12 @@ export class GeneratorService {
   /** Per-user pagination state */
   public userPagination = signal<Record<string, { limit: number; offset: number }>>({});
 
-  /** Execute a generator action (if needed) */
-  executeOfGenerator(gen: EnergyGenerator): Observable<GeneratorResponse> {
-    return this.http.post<GeneratorResponse>(`${this.apiUrl}//generators-by-id`, gen);
-  }
-
-  async executeGenerator(gen: EnergyGenerator): Promise<GeneratorResponse> {
-    return await firstValueFrom(this.executeOfGenerator(gen));
-  }
-
   /** Fetch generators for a single user */
   async fetchGeneratorsForUser(
     userId: string,
     limit = this.DEFAULT_LIMIT,
     offset = this.DEFAULT_OFFSET
-  ): Promise<EnergyGenerator[]> {
+  ): Promise<UserGeneratorsMap> {
 
     // Save per-user pagination state
     this.userPagination.update(current => ({
@@ -45,7 +36,7 @@ export class GeneratorService {
     }));
 
     const generators = await firstValueFrom(
-      this.http.get<EnergyGenerator[]>(`${this.apiUrl}/generators`, {
+      this.http.get<UserGeneratorsMap>(`${this.apiUrl}/generators-by-id`, {
         params: new HttpParams()
           .set('limit', limit.toString())
           .set('offset', offset.toString())
@@ -53,11 +44,16 @@ export class GeneratorService {
       })
     );
 
+
     // Merge into global signal, preserving other users
     this.generators.update(current => ({
       ...current,
-      [userId]: generators
+      ...generators,
     }));
+
+    console.log(JSON.stringify(generators, null, 4))
+    console.log(JSON.stringify(this.generators(), null, 4))
+
 
     return generators;
   }
