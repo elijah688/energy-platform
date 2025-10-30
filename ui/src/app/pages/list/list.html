@@ -48,7 +48,7 @@
           <!-- <div>Date: {{ tx.createdAt }}</div> -->
         </mat-card>
         } @empty {
-        <p>No transactions for this user.</p>
+        <p>End of transactions.</p>
         }
 
         <!-- Transaction pagination buttons -->
@@ -57,7 +57,9 @@
             [disabled]="(transService.userPagination()[user.id]?.offset || 0) === 0">
             Previous
           </button>
-          <button mat-button (click)="transService.nextPage(user.id)">
+
+          <button mat-button (click)="transService.nextPage(user.id)"
+            [disabled]="(transService.transactions()[user.id]?.length || 0) < (transService.userPagination()[user.id]?.limit || 50)">
             Next
           </button>
         </div>
