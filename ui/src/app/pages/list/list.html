@@ -17,21 +17,29 @@
       Select
     </button>
 
-    <mat-accordion multi>
+    <mat-accordion #userAcc multi class="user-panel">
       <!-- Generators Panel -->
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>
-            Generators ({{ "user.generators.length" }})
+            <!-- Generators ({{ user.generators?.length || 0 }}) -->
           </mat-panel-title>
         </mat-expansion-panel-header>
-
-        <!-- Generators rendering (fill this in later) -->
+<!--
+        @for (gen of (user.generators || []); track $index) {
+        <mat-card class="generator-card">
+          <div>Type: {{ gen.type }}</div>
+          <div>Production Rate: {{ gen.productionRate }}</div>
+          <div>Status: {{ gen.status }}</div>
+          <div>Last Generated: {{ gen.lastGeneratedAt || 'Never' }}</div>
+        </mat-card>
+        } @empty {
         <p>No generators for this user.</p>
+        } -->
       </mat-expansion-panel>
 
       <!-- Transactions Panel -->
-      <mat-expansion-panel (opened)="transService.fetchTransactionsForUser(user.id)">
+      <mat-expansion-panel (opened)="fetchUserTransactions(user.id)">
         <mat-expansion-panel-header>
           <mat-panel-title>
             Transactions
@@ -45,40 +53,37 @@
           <div>Energy: {{ tx.energyAmount }} kWh</div>
           <div>Price: {{ tx.pricePerKwh }}</div>
           <div>Total: {{ tx.totalPrice }}</div>
-          <!-- <div>Date: {{ tx.createdAt }}</div> -->
         </mat-card>
         } @empty {
-        <p>End of transactions.</p>
+        <p>End of user transactions.</p>
         }
 
         <!-- Transaction pagination buttons -->
         <div class="pagination">
-          <button mat-button (click)="transService.prevPage(user.id)"
+          <button mat-button (click)="prevUserTxPage(user.id)"
             [disabled]="(transService.userPagination()[user.id]?.offset || 0) === 0">
             Previous
           </button>
 
-          <button mat-button (click)="transService.nextPage(user.id)"
+          <button mat-button (click)="nextUserTxPage(user.id)"
             [disabled]="(transService.transactions()[user.id]?.length || 0) < (transService.userPagination()[user.id]?.limit || 50)">
             Next
           </button>
         </div>
-
       </mat-expansion-panel>
-
     </mat-accordion>
   </mat-card>
   } @empty {
-  <p>There are no users.</p>
+  <p>End of users.</p>
   }
 </div>
 
 <!-- Users pagination buttons -->
 <div class="pagination">
-  <button mat-raised-button (click)="userServ.prev()" [disabled]="userServ.offset === 0">
+  <button mat-raised-button (click)="prevPage()" [disabled]="userServ.offset === 0">
     Previous
   </button>
-  <button mat-raised-button (click)="userServ.next()">
+  <button mat-raised-button (click)="nextPage()">
     Next
   </button>
 </div>
