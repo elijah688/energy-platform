@@ -1,7 +1,7 @@
 
 
 
-interface EnergyTransaction {
+export interface EnergyTransaction {
   sellerId: string;
   buyerId: string;
   energyAmount: number;
@@ -9,7 +9,11 @@ interface EnergyTransaction {
   totalPrice?: number;
 }
 
-interface TransactionResponse {
+export interface TransactionResponse {
   message: string;
   totalPrice: number;
+}
+
+export interface UserTransactionsMap {
+  [userId: string]: EnergyTransaction[];
 }

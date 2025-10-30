@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { UserService } from '../../services/users';
-import { inject } from '@angular/core';
+import { TransactionService } from '../../services/transaction';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import { TransactionService } from '../../services/transaction';
+
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -14,18 +14,30 @@ import { TransactionService } from '../../services/transaction';
   styleUrls: ['./list.sass']
 })
 export class List implements OnInit {
-  energy = inject(UserService)
-  transService = inject(TransactionService)
+  userServ = inject(UserService);
+  transService = inject(TransactionService);
 
-  ngOnInit() {
-    this.energy.fetchUsers();
+  async ngOnInit() {
+    await this.userServ.fetchUsers();
   }
 
-  nextPage() {
-    this.energy.next();
+  async nextPage() {
+    await this.userServ.next();
   }
 
-  prevPage() {
-    this.energy.prev();
+  async prevPage() {
+    await this.userServ.prev();
+  }
+
+  async fetchUserTransactions(userId: string) {
+    await this.transService.fetchTransactionsForUser(userId);
+  }
+
+  async nextUserTxPage(userId: string) {
+    await this.transService.nextPage(userId);
+  }
+
+  async prevUserTxPage(userId: string) {
+    await this.transService.prevPage(userId);
   }
 }

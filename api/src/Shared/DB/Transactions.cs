@@ -1,6 +1,5 @@
 using Shared.Model;
 using Npgsql;
-using Shared.DB;
 
 
 namespace Shared.DB
@@ -53,5 +52,50 @@ namespace Shared.DB
             cmd.ExecuteNonQuery();
             tran.Commit();
         }
+
+
+
+        public static List<EnergyTransaction> GetTransactionsByUserId(
+      Guid userId,
+            int limit = 50,
+            int offset = 0)
+        {
+            var transactions = new List<EnergyTransaction>();
+
+            using var conn = GetConnection();
+            using var cmd = new NpgsqlCommand
+            {
+                Connection = conn,
+                CommandText = @"
+                    SELECT id, seller_id, buyer_id, energy_amount, price_per_kwh, total_price, created_at
+                    FROM transactions
+                    WHERE seller_id = @userId OR buyer_id = @userId
+                    ORDER BY created_at DESC
+                    LIMIT @limit OFFSET @offset;
+                "
+            };
+
+            cmd.Parameters.AddWithValue("userId", userId);
+            cmd.Parameters.AddWithValue("limit", limit);
+            cmd.Parameters.AddWithValue("offset", offset);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var tx = new EnergyTransaction(
+                    reader.GetGuid(reader.GetOrdinal("seller_id")),
+                    reader.GetGuid(reader.GetOrdinal("buyer_id")),
+                    reader.GetDecimal(reader.GetOrdinal("energy_amount")),
+                    reader.GetDecimal(reader.GetOrdinal("price_per_kwh"))
+                );
+
+                transactions.Add(tx);
+            }
+
+            return transactions;
+        }
+
     }
 }
+
+

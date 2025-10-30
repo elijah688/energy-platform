@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, map, tap, catchError, of, firstValueFrom } from 'rxjs';
 import { User } from '../model/user';
+import { UserTransactionsMap } from '../model/transaction';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ import { User } from '../model/user';
 export class UserService {
   public users = signal<User[]>([]);
   public selecterUsers = signal<User[]>([]);
-  public transactions = signal<Record<string, EnergyTransaction[]>>({});
+  public transactions = signal<Record<string, UserTransactionsMap[]>>({});
   public generators = signal<Record<string, Generator[]>>({});
 
   private userAddedPage = new Map<string, number>(); // userId -> page number

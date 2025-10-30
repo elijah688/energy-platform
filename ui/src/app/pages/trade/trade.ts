@@ -83,7 +83,7 @@ export class Trade implements OnInit {
       return;
     }
 
-    this.transService.executeTransaction({
+    this.transService.executeOfTransaction({
       sellerId: this.seller.id,
       buyerId: this.buyer.id,
       energyAmount: this.amount,

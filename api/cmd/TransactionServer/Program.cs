@@ -10,7 +10,7 @@ namespace TransactionServer
         public static void Main(string[] args)
         {
             // Hardcoded args/config
-            var port = int.TryParse(Environment.GetEnvironmentVariable("BACKEND_PORT"), out var p) ? p : 5050;
+            var port = int.TryParse(Environment.GetEnvironmentVariable("PORT"), out var p) ? p : 5050;
 
             var builder = WebApplication.CreateBuilder();
 
@@ -25,12 +25,19 @@ namespace TransactionServer
                     });
                 });
 
+
+            var app = builder.Build();
+            app.UseCors();
+            app.Urls.Add($"http://localhost:{port}");
+
+
+
+
             var js = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
-            var app = builder.Build();
-            app.UseCors();
+
 
             app.MapPost("/users", async (HttpContext context) =>
             {
@@ -136,7 +143,17 @@ namespace TransactionServer
 
 
 
-            app.Urls.Add($"http://localhost:{port}");
+
+            app.MapGet("/transactions", (Guid userId, int? limit, int? offset) =>
+            {
+                int l = limit ?? 50;
+                int o = offset ?? 0;
+
+                var transactions = TransactionsDB.GetTransactionsByUserId(userId, l, o);
+                return Results.Json(transactions);
+            });
+
+
             app.Run();
         }
     }

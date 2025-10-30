@@ -30,21 +30,13 @@ namespace Shared.Model
     }
 
 
-    public class EnergyTransaction
-    {
-        public Guid SellerId { get; set; }
-        public Guid BuyerId { get; set; }
-        public decimal EnergyAmount { get; set; }
-        public decimal PricePerKwh { get; set; }
-
-        // Derived property
-        public decimal TotalPrice => EnergyAmount * PricePerKwh;
-    }
-
+   
     public class UserWithGenerators
     {
         public User User { get; set; } = new();
         public List<Generator> Generators { get; set; } = new();
     }
+
+
 
 }

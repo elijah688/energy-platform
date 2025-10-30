@@ -1,112 +1,113 @@
 <!-- Top users grid -->
 <div class="users-grid">
-  @for (user of energy.users(); track $index) {
-    <mat-card class="user-card">
-      <!-- User Info -->
-      <div class="user-info">
-        <div>Name: {{ user.name }}</div>
-        <div>Balance: {{ user.balance }}</div>
-        <div>Energy Stored: {{ user.energyStored }}</div>
-        <div>Id: {{ user.id }}</div>
-        <div>Created At: {{ user.createdAt }}</div>
-        <div>Updated At: {{ user.updatedAt }}</div>
-      </div>
+  @for (user of userServ.users(); track $index) {
+  <mat-card class="user-card">
+    <!-- User Info -->
+    <div class="user-info">
+      <div>Name: {{ user.name }}</div>
+      <div>Balance: {{ user.balance }}</div>
+      <div>Energy Stored: {{ user.energyStored }}</div>
+      <div>Id: {{ user.id }}</div>
+      <div>Created At: {{ user.createdAt }}</div>
+      <div>Updated At: {{ user.updatedAt }}</div>
+    </div>
 
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="energy.selectUser(user)"
-        [disabled]="energy.selecterUsers().length >= 2">
-        Select
-      </button>
+    <button mat-raised-button color="primary" (click)="userServ.selectUser(user)"
+      [disabled]="userServ.selecterUsers().length >= 2">
+      Select
+    </button>
 
-      <mat-accordion multi>
-        <!-- Generators Panel -->
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Generators ({{ "user.generators.length" }})
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+    <mat-accordion multi>
+      <!-- Generators Panel -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            Generators ({{ "user.generators.length" }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
 
-          <!-- @for (gen of []; track $index) {
-            <mat-card class="generator-card">
-              <div>Type: {{ gen.type }}</div>
-              <div>Production Rate: {{ gen.productionRate }}</div>
-              <div>Status: {{ gen.status }}</div>
-              <div>Last Generated: {{ gen.lastGeneratedAt || 'Never' }}</div>
-            </mat-card>
-          } @empty {
-            <p>No generators for this user.</p>
-          } -->
-        </mat-expansion-panel>
+        <!-- Generators rendering (fill this in later) -->
+        <p>No generators for this user.</p>
+      </mat-expansion-panel>
 
-        <!-- Transactions Panel -->
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              Transactions
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+      <!-- Transactions Panel -->
+      <mat-expansion-panel (opened)="transService.fetchTransactionsForUser(user.id)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            Transactions
+          </mat-panel-title>
+        </mat-expansion-panel-header>
 
-          <!-- @for (tx of user.transactions || []; track $index) {
-            <mat-card class="transaction-card">
-              <div>Seller: {{ "tx.sellerId" }}</div>
-              <div>Buyer: {{ "tx.buyerId || 'Market'" }}</div>
-              <div>Energy: {{ "tx.energyAmount" }} kWh</div>
-              <div>Price: {{ "tx.pricePerKwh" }}</div>
-              <div>Total: {{ "tx.totalPrice" }}</div>
-              <div>Date: {{ "tx.createdAt" }}</div>
-            </mat-card>
-          } @empty {
-            <p>No transactions for this user.</p>
-          } -->
-        </mat-expansion-panel>
-      </mat-accordion>
-    </mat-card>
+        @for (tx of (transService.transactions()[user.id] || []); track $index) {
+        <mat-card class="transaction-card">
+          <div>Seller: {{ tx.sellerId }}</div>
+          <div>Buyer: {{ tx.buyerId || 'Market' }}</div>
+          <div>Energy: {{ tx.energyAmount }} kWh</div>
+          <div>Price: {{ tx.pricePerKwh }}</div>
+          <div>Total: {{ tx.totalPrice }}</div>
+          <!-- <div>Date: {{ tx.createdAt }}</div> -->
+        </mat-card>
+        } @empty {
+        <p>No transactions for this user.</p>
+        }
+
+        <!-- Transaction pagination buttons -->
+        <div class="pagination">
+          <button mat-button (click)="transService.prevPage(user.id)"
+            [disabled]="(transService.userPagination()[user.id]?.offset || 0) === 0">
+            Previous
+          </button>
+          <button mat-button (click)="transService.nextPage(user.id)">
+            Next
+          </button>
+        </div>
+
+      </mat-expansion-panel>
+
+    </mat-accordion>
+  </mat-card>
   } @empty {
-    <p>There are no users.</p>
+  <p>There are no users.</p>
   }
 </div>
 
-<!-- Pagination buttons -->
+<!-- Users pagination buttons -->
 <div class="pagination">
-  <button mat-raised-button (click)="energy.prev()" [disabled]="energy.offset === 0">
+  <button mat-raised-button (click)="userServ.prev()" [disabled]="userServ.offset === 0">
     Previous
   </button>
-  <button mat-raised-button (click)="energy.next()">
+  <button mat-raised-button (click)="userServ.next()">
     Next
   </button>
 </div>
 
 <!-- Selected users for transaction -->
-@if (energy.selecterUsers().length > 0) {
-  <div class="transaction-header">
-    <h3>Selected Users for Transaction</h3>
-  </div>
+@if (userServ.selecterUsers().length > 0) {
+<div class="transaction-header">
+  <h3>Selected Users for Transaction</h3>
+</div>
 
-  <div class="transaction-users-grid">
-    @for (user of energy.selecterUsers(); track $index) {
-      <mat-card class="user-card picked">
-        <div class="user-info">
-          <div>Name: {{ user.name }}</div>
-          <div>Balance: {{ user.balance }}</div>
-          <div>Energy Stored: {{ user.energyStored }}</div>
-          <div>Id: {{ user.id }}</div>
-        </div>
-        <button mat-raised-button color="warn" (click)="energy.deselectUser(user)">
-          Remove
-        </button>
-      </mat-card>
-    }
-  </div>
-
-  <!-- Show trade button only when 2 users are selected -->
-  @if (energy.selecterUsers().length === 2) {
-    <div class="trade-button" style="text-align: center; margin-top: 1rem;">
-      <button mat-raised-button color="accent" [routerLink]="'/trade'">
-        Proceed to Trade
-      </button>
+<div class="transaction-users-grid">
+  @for (user of userServ.selecterUsers(); track $index) {
+  <mat-card class="user-card picked">
+    <div class="user-info">
+      <div>Name: {{ user.name }}</div>
+      <div>Balance: {{ user.balance }}</div>
+      <div>Energy Stored: {{ user.energyStored }}</div>
+      <div>Id: {{ user.id }}</div>
     </div>
+    <button mat-raised-button color="warn" (click)="userServ.deselectUser(user)">
+      Remove
+    </button>
+  </mat-card>
   }
+</div>
+
+@if (userServ.selecterUsers().length === 2) {
+<div class="trade-button" style="text-align: center; margin-top: 1rem;">
+  <button mat-raised-button color="accent" [routerLink]="'/trade'">
+    Proceed to Trade
+  </button>
+</div>
+}
 }

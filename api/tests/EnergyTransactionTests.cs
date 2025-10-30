@@ -54,12 +54,12 @@ public class ServerTests(WebApplicationFactory<TransactionServer.Program> factor
 
         // 2️⃣ Execute a transaction
         var tx = new EnergyTransaction
-        {
-            SellerId = users[0].User.Id,
-            BuyerId = users[1].User.Id,
-            EnergyAmount = 20m,
-            PricePerKwh = 5m
-        };
+        (
+          users[0].User.Id,
+           users[1].User.Id,
+           20m,
+           5m
+        );
 
         var txResponse = await client.PostAsJsonAsync("/transaction", tx);
         txResponse.EnsureSuccessStatusCode();
