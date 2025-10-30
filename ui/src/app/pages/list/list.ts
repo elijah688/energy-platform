@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { Energy } from '../../services/energy';
+import { UserService } from '../../services/users';
 import { inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
+import { TransactionService } from '../../services/transaction';
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -13,7 +14,8 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./list.sass']
 })
 export class List implements OnInit {
-  energy = inject(Energy)
+  energy = inject(UserService)
+  transService = inject(TransactionService)
 
   ngOnInit() {
     this.energy.fetchUsers();

@@ -1,13 +1,14 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, map, tap, catchError, of, firstValueFrom } from 'rxjs';
 import { User } from '../model/user';
 
 @Injectable({
   providedIn: 'root'
 })
-export class Energy {
+
+export class UserService {
   public users = signal<User[]>([]);
   public selecterUsers = signal<User[]>([]);
   public transactions = signal<Record<string, EnergyTransaction[]>>({});
@@ -21,7 +22,7 @@ export class Energy {
   public offset = 0;
   public currentPage = 0;
 
-  fetchUsers(limit: number = this.limit, offset: number = this.offset) {
+  fetchOfUsers(limit: number = this.limit, offset: number = this.offset): Observable<User[]> {
     this.limit = limit;
     this.offset = offset;
     this.currentPage = Math.floor(offset / limit);
@@ -30,27 +31,33 @@ export class Energy {
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
 
-    this.http
-      .get<User[]>(`${this.apiUrl}/users?${params.toString()}`)
-      .subscribe({
-        next: users => {
-          const selectedIds = new Set(this.selecterUsers().map(u => u.id));
-          const filtered = users.filter(u => !selectedIds.has(u.id));
-          this.users.set(filtered);
-        },
-        error: err => console.error('Failed to fetch users', err)
-      });
+    return this.http.get<User[]>(`${this.apiUrl}/users?${params.toString()}`).pipe(
+      map(users => {
+        const selectedIds = new Set(this.selecterUsers().map(u => u.id));
+        return users.filter(u => !selectedIds.has(u.id));
+      }),
+      tap(filtered => this.users.set(filtered)), // optional side effect
+      catchError(err => {
+        console.error('Failed to fetch users', err);
+        return of([]);
+      })
+    );
+  }
+  async fetchUsers(limit: number = this.limit, offset: number = this.offset) {
+    await firstValueFrom(this.fetchOfUsers(limit, offset));
   }
 
-  next() {
+
+  async next() {
     this.offset += this.limit;
-    this.fetchUsers(this.limit, this.offset);
+    await this.fetchUsers(this.limit, this.offset);
+
   }
 
-  prev() {
+  async prev() {
     if (this.offset >= this.limit) {
       this.offset -= this.limit;
-      this.fetchUsers(this.limit, this.offset);
+      await this.fetchUsers(this.limit, this.offset);
     }
   }
 
@@ -73,11 +80,6 @@ export class Energy {
     }
 
     this.userAddedPage.delete(user.id);
-  }
-
-
-  executeTransaction(tx: EnergyTransaction): Observable<TransactionResponse> {
-    return this.http.post<TransactionResponse>(`${this.apiUrl}/transaction`, tx);
   }
 
 

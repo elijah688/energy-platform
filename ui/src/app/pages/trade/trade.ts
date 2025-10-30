@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Energy } from '../../services/energy';
+import { UserService } from '../../services/users';
+import { TransactionService } from '../../services/transaction';
 import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,8 +27,9 @@ import { Router } from '@angular/router';
   styleUrls: ['./trade.sass']
 })
 export class Trade implements OnInit {
-  energy = inject(Energy);
-  snackBar = inject(MatSnackBar);
+  readonly userService = inject(UserService);
+  private readonly transService = inject(TransactionService);
+  private readonly snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
   sellerIsLeft = true;
@@ -35,7 +37,7 @@ export class Trade implements OnInit {
   pricePerKwh: number = 0.0;
 
   ngOnInit() {
-    console.log('Selected transaction users:', this.energy.selecterUsers());
+    console.log('Selected transaction users:', this.userService.selecterUsers());
   }
 
   swapSeller() {
@@ -43,12 +45,12 @@ export class Trade implements OnInit {
   }
 
   get seller() {
-    const [userA, userB] = this.energy.selecterUsers();
+    const [userA, userB] = this.userService.selecterUsers();
     return this.sellerIsLeft ? userA : userB;
   }
 
   get buyer() {
-    const [userA, userB] = this.energy.selecterUsers();
+    const [userA, userB] = this.userService.selecterUsers();
     return this.sellerIsLeft ? userB : userA;
   }
 
@@ -81,7 +83,7 @@ export class Trade implements OnInit {
       return;
     }
 
-    this.energy.executeTransaction({
+    this.transService.executeTransaction({
       sellerId: this.seller.id,
       buyerId: this.buyer.id,
       energyAmount: this.amount,
@@ -89,8 +91,8 @@ export class Trade implements OnInit {
     }).subscribe({
       next: res => {
         console.log('Transaction completed:', res.message);
-        this.energy.selecterUsers.set([]);
-        this.energy.fetchUsers(this.energy.limit, this.energy.offset);
+        this.userService.selecterUsers.set([]);
+        this.userService.fetchUsers(this.userService.limit, this.userService.offset);
         this.snackBar.open('Transaction executed successfully', 'Close', { duration: 2000 });
         this.router.navigate(['/list']);
       },
