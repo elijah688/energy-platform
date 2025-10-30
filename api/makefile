@@ -8,7 +8,7 @@ RID = osx-arm64
 # .NET commands
 # -----------------------------
 server:
-	dotnet run -c $(CONFIG) --project ./cmd/TransactionServer
+	export $$(cat .env | xargs) && dotnet watch run -c $(CONFIG) --project ./cmd/TransactionServer
 
 clean:
 	dotnet clean

@@ -111,6 +111,10 @@ namespace TransactionServer
                     }
                     catch (Exception ex)
                     {
+                        Console.WriteLine(ex);
+                        Console.WriteLine(ex);
+                        Console.WriteLine(ex);
+                        Console.WriteLine(ex);
                         return Results.Problem($"Error fetching users with generators: {ex.Message}");
                     }
                 });

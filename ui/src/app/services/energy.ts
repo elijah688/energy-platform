@@ -2,6 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { UserWithGenerators } from '../model/user-with-generator';
 import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -71,4 +72,12 @@ export class Energy {
 
     this.userAddedPage.delete(user.user.id);
   }
+
+
+  executeTransaction(tx: EnergyTransaction): Observable<TransactionResponse> {
+    return this.http.post<TransactionResponse>(`${this.apiUrl}/transaction`, tx);
+  }
+
+
+
 }

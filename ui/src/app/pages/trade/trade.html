@@ -2,7 +2,7 @@
 <div class="transaction-users-row">
 
   <!-- Left user -->
-  <mat-card class="user-card picked" [class.seller]="sellerIsLeft">
+  <mat-card class="user-card picked" [class.seller]="!sellerIsLeft">
     <div class="role-label">
       {{ sellerIsLeft ? 'Seller' : 'Buyer' }}
     </div>
@@ -19,7 +19,7 @@
   </button>
 
   <!-- Right user -->
-  <mat-card class="user-card picked" [class.seller]="!sellerIsLeft">
+  <mat-card class="user-card picked" [class.seller]="sellerIsLeft">
     <div class="role-label">
       {{ sellerIsLeft ? 'Buyer' : 'Seller' }}
     </div>
