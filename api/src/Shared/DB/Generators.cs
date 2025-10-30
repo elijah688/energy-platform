@@ -71,5 +71,56 @@ namespace Shared.DB
 
             tran.Commit();
         }
+
+
+        public static UserGeneratorsMap GetGeneratorsByUserIds(List<Guid> userIds, int limit = 50, int offset = 0)
+        {
+            var result = new UserGeneratorsMap();
+
+            if (userIds == null || userIds.Count == 0)
+                return result;
+
+            using var conn = GetConnection();
+
+            foreach (var userId in userIds)
+            {
+                var generators = new List<Generator>();
+
+                using var cmd = new NpgsqlCommand(
+                    @"SELECT id, type, production_rate, owner_id, status, last_generated_at, created_at, updated_at
+                      FROM generators
+                      WHERE owner_id = @ownerId
+                      ORDER BY created_at, id
+                      LIMIT @limit OFFSET @offset", conn);
+
+                cmd.Parameters.AddWithValue("ownerId", userId);
+                cmd.Parameters.AddWithValue("limit", limit);
+                cmd.Parameters.AddWithValue("offset", offset);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    generators.Add(new Generator
+                    {
+                        Id = reader.GetGuid(0),
+                        Type = reader.GetString(1),
+                        ProductionRate = reader.GetDecimal(2),
+                        OwnerId = reader.GetGuid(3),
+                        Status = reader.GetString(4),
+                        LastGeneratedAt = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
+                        CreatedAt = reader.GetDateTime(6),
+                        UpdatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7)
+                    });
+                }
+
+                result[userId] = generators;
+            }
+
+            return result;
+        }
     }
 }
+
+
+
+

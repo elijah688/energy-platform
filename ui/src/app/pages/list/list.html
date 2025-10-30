@@ -19,14 +19,14 @@
 
     <mat-accordion #userAcc multi class="user-panel">
       <!-- Generators Panel -->
-      <mat-expansion-panel>
+      <mat-expansion-panel (opened)="fetchUserGenerators(user.id)">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <!-- Generators ({{ user.generators?.length || 0 }}) -->
+            Generators
           </mat-panel-title>
         </mat-expansion-panel-header>
-<!--
-        @for (gen of (user.generators || []); track $index) {
+
+        @for (gen of (genService.generators()[user.id] || []); track $index) {
         <mat-card class="generator-card">
           <div>Type: {{ gen.type }}</div>
           <div>Production Rate: {{ gen.productionRate }}</div>
@@ -35,8 +35,22 @@
         </mat-card>
         } @empty {
         <p>No generators for this user.</p>
-        } -->
+        }
+
+        <!-- Generator pagination buttons -->
+        <div class="pagination">
+          <button mat-button (click)="prevUserGenPage(user.id)"
+            [disabled]="(genService.userPagination()[user.id]?.offset || 0) === 0">
+            Previous
+          </button>
+
+          <button mat-button (click)="nextUserGenPage(user.id)"
+            [disabled]="(genService.generators()[user.id]?.length || 0) < (genService.userPagination()[user.id]?.limit || 1)">
+            Next
+          </button>
+        </div>
       </mat-expansion-panel>
+
 
       <!-- Transactions Panel -->
       <mat-expansion-panel (opened)="fetchUserTransactions(user.id)">

@@ -2,9 +2,11 @@ import { Component, OnInit, inject, ViewChildren, QueryList, AfterViewInit } fro
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 import { UserService } from '../../services/users';
 import { TransactionService } from '../../services/transaction';
+import { GeneratorService } from '../../services/generator';
 import { MatCard } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+
 @Component({
   selector: 'app-list',
   imports: [MatCard, MatExpansionPanel, MatAccordion, MatExpansionPanelHeader, MatExpansionPanelTitle, RouterLink, MatButtonModule],
@@ -14,6 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
 export class List implements OnInit, AfterViewInit {
   userServ = inject(UserService);
   transService = inject(TransactionService);
+  genService = inject(GeneratorService);
 
   @ViewChildren(MatAccordion) accordions!: QueryList<MatAccordion>;
 
@@ -39,6 +42,7 @@ export class List implements OnInit, AfterViewInit {
     this.accordions.forEach(acc => acc.closeAll());
   }
 
+  /** Transactions */
   async fetchUserTransactions(userId: string) {
     await this.transService.fetchTransactionsForUser(userId);
   }
@@ -49,5 +53,18 @@ export class List implements OnInit, AfterViewInit {
 
   async prevUserTxPage(userId: string) {
     await this.transService.prevPage(userId);
+  }
+
+  /** Generators */
+  async fetchUserGenerators(userId: string) {
+    await this.genService.fetchGeneratorsForUser(userId);
+  }
+
+  async nextUserGenPage(userId: string) {
+    await this.genService.nextPage(userId);
+  }
+
+  async prevUserGenPage(userId: string) {
+    await this.genService.prevPage(userId);
   }
 }

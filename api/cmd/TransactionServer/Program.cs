@@ -153,6 +153,16 @@ namespace TransactionServer
                 return Results.Json(transactions);
             });
 
+            app.MapGet("/generators-by-id", (Guid userId, int? limit, int? offset) =>
+                {
+                    int l = limit ?? 50;
+                    int o = offset ?? 0;
+
+                    var generators = GeneratorsDB.GetGeneratorsByUserIds(new List<Guid> { userId }, l, o);
+                    return Results.Json(generators);
+                });
+
+
 
             app.Run();
         }
