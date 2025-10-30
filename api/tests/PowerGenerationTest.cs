@@ -46,7 +46,7 @@ public class PowerGeneration
                 }
             };
 
-        DB.UpsertUsers(users);
+        UsersDB.UpsertUsers(users);
 
         Guid user1 = users[0].Id;
         Guid user2 = users[1].Id;
@@ -100,9 +100,9 @@ public class PowerGeneration
                 }
         };
 
-        DB.UpsertGenerators(generators);
+        GeneratorsDB.UpsertGenerators(generators);
 
-        var usersFromDB = DB.GetUsers();
+        var usersFromDB = UsersDB.GetUsers();
         var m = usersFromDB.ToDictionary(u => u.Id, u => u.EnergyStored);
         Assert.Equal(0.00m, m[user1]);
         Assert.Equal(0.00m, m[user2]);
@@ -110,17 +110,11 @@ public class PowerGeneration
 
 
         await new GeneratorProcess().RunAsync();
-        usersFromDB = DB.GetUsers();
+        usersFromDB = UsersDB.GetUsers();
         m = usersFromDB.ToDictionary(u => u.Id, u => u.EnergyStored);
         Assert.Equal(80.70m, m[user1]);
         Assert.Equal(73.70m, m[user2]);
         Assert.Equal(60.00m, m[user3]);
-
-
-
-
-
-
 
     }
 }

@@ -1,15 +1,17 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import type { UserWithGenerators } from '../model/user-with-generator';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { User } from '../model/user';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Energy {
-  public usersWithGenerators = signal<UserWithGenerators[]>([]);
-  public transactionUsers = signal<UserWithGenerators[]>([]);
+  public users = signal<User[]>([]);
+  public selecterUsers = signal<User[]>([]);
+  public transactions = signal<Record<string, EnergyTransaction[]>>({});
+  public generators = signal<Record<string, Generator[]>>({});
 
   private userAddedPage = new Map<string, number>(); // userId -> page number
   private http = inject(HttpClient);
@@ -29,12 +31,12 @@ export class Energy {
     params.set('offset', offset.toString());
 
     this.http
-      .get<UserWithGenerators[]>(`${this.apiUrl}/users-with-generators?${params.toString()}`)
+      .get<User[]>(`${this.apiUrl}/users?${params.toString()}`)
       .subscribe({
         next: users => {
-          const selectedIds = new Set(this.transactionUsers().map(u => u.user.id));
-          const filtered = users.filter(u => !selectedIds.has(u.user.id));
-          this.usersWithGenerators.set(filtered);
+          const selectedIds = new Set(this.selecterUsers().map(u => u.id));
+          const filtered = users.filter(u => !selectedIds.has(u.id));
+          this.users.set(filtered);
         },
         error: err => console.error('Failed to fetch users', err)
       });
@@ -52,25 +54,25 @@ export class Energy {
     }
   }
 
-  selectUser(user: UserWithGenerators) {
-    if (this.transactionUsers().length >= 2) return;
+  selectUser(user: User) {
+    if (this.selecterUsers().length >= 2) return;
 
-    this.transactionUsers.set([...this.transactionUsers(), user]);
-    this.usersWithGenerators.set(this.usersWithGenerators().filter(u => u.user.id !== user.user.id));
+    this.selecterUsers.set([...this.selecterUsers(), user]);
+    this.users.set(this.users().filter(u => u.id !== user.id));
 
     // Track the page where the user was selected
-    this.userAddedPage.set(user.user.id, this.currentPage);
+    this.userAddedPage.set(user.id, this.currentPage);
   }
 
-  deselectUser(user: UserWithGenerators) {
-    this.transactionUsers.set(this.transactionUsers().filter(u => u.user.id !== user.user.id));
+  deselectUser(user: User) {
+    this.selecterUsers.set(this.selecterUsers().filter(u => u.id !== user.id));
 
-    const addedPage = this.userAddedPage.get(user.user.id);
+    const addedPage = this.userAddedPage.get(user.id);
     if (addedPage === this.currentPage) {
-      this.usersWithGenerators.set([user, ...this.usersWithGenerators()]);
+      this.users.set([user, ...this.users()]);
     }
 
-    this.userAddedPage.delete(user.user.id);
+    this.userAddedPage.delete(user.id);
   }
 
 

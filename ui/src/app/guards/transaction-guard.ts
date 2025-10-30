@@ -7,7 +7,7 @@ export const transactionGuard: CanActivateFn = (route, state) => {
   const energy = inject(Energy);
   const router = inject(Router);
 
-  if (energy.transactionUsers().length === 2) {
+  if (energy.selecterUsers().length === 2) {
     return true;
   } else {
     router.navigate(['/list']); // redirect if not enough users

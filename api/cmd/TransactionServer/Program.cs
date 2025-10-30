@@ -1,4 +1,5 @@
-﻿using Shared.DB;
+﻿using Shared;
+using Shared.DB;
 using Shared.Model;
 using System.Text.Json;
 
@@ -44,7 +45,7 @@ namespace TransactionServer
 
                     // Upsert all users first
                     var users = usersWithGens.Select(uwg => uwg.User).ToList();
-                    DB.UpsertUsers(users);
+                    UsersDB.UpsertUsers(users);
 
                     // Flatten all generators and set the correct OwnerId
                     var allGenerators = usersWithGens
@@ -56,7 +57,7 @@ namespace TransactionServer
                         })
                         .ToList();
 
-                    DB.UpsertGenerators(allGenerators);
+                    GeneratorsDB.UpsertGenerators(allGenerators);
 
                     return Results.Json(new
                     {
@@ -83,7 +84,7 @@ namespace TransactionServer
                     if (tx is null)
                         return Results.BadRequest(new { error = "Invalid transaction payload." });
 
-                    DB.ExecuteEnergyTransaction(tx);
+                    TransactionsDB.ExecuteEnergyTransaction(tx);
 
                     return Results.Json(new
                     {
@@ -98,23 +99,37 @@ namespace TransactionServer
             });
 
 
-            app.MapGet("/users-with-generators", (int? limit, int? offset) =>
+            app.MapGet("/users", (int? limit, int? offset) =>
                 {
                     try
                     {
                         int l = limit ?? 100;
                         int o = offset ?? 0;
 
-                        var usersWithGens = DB.GetUsersWithGenerators(l, o);
+                        var usersWithGens = UsersDB.GetUsers(l, o);
 
                         return Results.Json(usersWithGens);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex);
-                        Console.WriteLine(ex);
-                        Console.WriteLine(ex);
-                        Console.WriteLine(ex);
+                        return Results.Problem($"Error fetching users with generators: {ex.Message}");
+                    }
+                });
+
+
+            app.MapGet("/generators", (int? limit, int? offset) =>
+                {
+                    try
+                    {
+                        int l = limit ?? 100;
+                        int o = offset ?? 0;
+
+                        var usersWithGens = GeneratorsDB.GetGenerators(l, o);
+
+                        return Results.Json(usersWithGens);
+                    }
+                    catch (Exception ex)
+                    {
                         return Results.Problem($"Error fetching users with generators: {ex.Message}");
                     }
                 });

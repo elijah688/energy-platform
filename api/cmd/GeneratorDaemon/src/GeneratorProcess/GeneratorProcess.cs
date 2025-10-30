@@ -19,7 +19,7 @@ namespace GeneratorDaemon.src.GeneratorProcess
 
                 while (true)
                 {
-                    var generators = DB.GetGenerators(limit, offset);
+                    var generators = GeneratorsDB.GetGenerators(limit, offset);
                     if (generators.Count == 0)
                     {
                         _channel.Writer.Complete();
@@ -47,7 +47,7 @@ namespace GeneratorDaemon.src.GeneratorProcess
             {
                 await foreach (var energyUpdates in _channel.Reader.ReadAllAsync())
                 {
-                    DB.UpdateUsersEnergyStore(energyUpdates);
+                    UsersDB.UpdateUsersEnergyStore(energyUpdates);
                 }
             });
 

@@ -35,7 +35,7 @@ export class Trade implements OnInit {
   pricePerKwh: number = 0.0;
 
   ngOnInit() {
-    console.log('Selected transaction users:', this.energy.transactionUsers());
+    console.log('Selected transaction users:', this.energy.selecterUsers());
   }
 
   swapSeller() {
@@ -43,28 +43,28 @@ export class Trade implements OnInit {
   }
 
   get seller() {
-    const [userA, userB] = this.energy.transactionUsers();
+    const [userA, userB] = this.energy.selecterUsers();
     return this.sellerIsLeft ? userA : userB;
   }
 
   get buyer() {
-    const [userA, userB] = this.energy.transactionUsers();
+    const [userA, userB] = this.energy.selecterUsers();
     return this.sellerIsLeft ? userB : userA;
   }
 
   // Compute projected balances and energy for display
   projectedBalance(user: any) {
-    if (!this.amount || !this.pricePerKwh) return user.user.balance;
-    if (user === this.seller) return user.user.balance + this.amount * this.pricePerKwh;
-    if (user === this.buyer) return user.user.balance - this.amount * this.pricePerKwh;
-    return user.user.balance;
+    if (!this.amount || !this.pricePerKwh) return user.balance;
+    if (user === this.seller) return user.balance + this.amount * this.pricePerKwh;
+    if (user === this.buyer) return user.balance - this.amount * this.pricePerKwh;
+    return user.balance;
   }
 
   projectedEnergy(user: any) {
-    if (!this.amount) return user.user.energyStored;
-    if (user === this.seller) return user.user.energyStored - this.amount;
-    if (user === this.buyer) return user.user.energyStored + this.amount;
-    return user.user.energyStored;
+    if (!this.amount) return user.energyStored;
+    if (user === this.seller) return user.energyStored - this.amount;
+    if (user === this.buyer) return user.energyStored + this.amount;
+    return user.energyStored;
   }
 
   executeTransaction() {
@@ -73,8 +73,8 @@ export class Trade implements OnInit {
       return;
     }
 
-    const sellerBalanceAfter = this.seller.user.balance + this.amount * this.pricePerKwh;
-    const sellerEnergyAfter = this.seller.user.energyStored - this.amount;
+    const sellerBalanceAfter = this.seller.balance + this.amount * this.pricePerKwh;
+    const sellerEnergyAfter = this.seller.energyStored - this.amount;
 
     if (sellerBalanceAfter < 0 || sellerEnergyAfter < 0) {
       this.snackBar.open('Transaction would result in negative balance or energy. Adjust values.', 'Close', { duration: 4000 });
@@ -82,14 +82,14 @@ export class Trade implements OnInit {
     }
 
     this.energy.executeTransaction({
-      sellerId: this.seller.user.id,
-      buyerId: this.buyer.user.id,
+      sellerId: this.seller.id,
+      buyerId: this.buyer.id,
       energyAmount: this.amount,
       pricePerKwh: this.pricePerKwh
     }).subscribe({
       next: res => {
         console.log('Transaction completed:', res.message);
-        this.energy.transactionUsers.set([]);
+        this.energy.selecterUsers.set([]);
         this.energy.fetchUsers(this.energy.limit, this.energy.offset);
         this.snackBar.open('Transaction executed successfully', 'Close', { duration: 2000 });
         this.router.navigate(['/list']);

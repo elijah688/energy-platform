@@ -43,7 +43,7 @@ public class ServerTests(WebApplicationFactory<TransactionServer.Program> factor
         usersResponse.EnsureSuccessStatusCode();
 
         // 🔹 Check DB before transaction
-        var usersFromDbBefore = DB.GetUsers().ToDictionary(u => u.Id, u => u);
+        var usersFromDbBefore = UsersDB.GetUsers().ToDictionary(u => u.Id, u => u);
         var aliceBefore = usersFromDbBefore[users[0].User.Id];
         var bobBefore = usersFromDbBefore[users[1].User.Id];
 
@@ -68,7 +68,7 @@ public class ServerTests(WebApplicationFactory<TransactionServer.Program> factor
         Assert.Contains("Transaction completed", txResult);
 
         // 🔹 Check DB after transaction
-        var usersFromDbAfter = DB.GetUsers().ToDictionary(u => u.Id, u => u);
+        var usersFromDbAfter = UsersDB.GetUsers().ToDictionary(u => u.Id, u => u);
         var aliceAfter = usersFromDbAfter[users[0].User.Id];
         var bobAfter = usersFromDbAfter[users[1].User.Id];
 
