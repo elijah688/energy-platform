@@ -39,7 +39,7 @@ import { UserWithGenerators } from '../../model/userGeneratorManagement';
 export class Form implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(Api);
-
+  private router = inject(Router)
   // Initialize immediately to satisfy Angular formGroup binding
   userForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]]
@@ -115,15 +115,12 @@ export class Form implements OnInit {
       name: this.userForm.value.name,
       balance: 0,
       energyStored: 0,
-      createdAt: now.toISOString(),  // ISO format
-      updatedAt: now.toISOString()   // ISO format
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
     };
 
-    // If editing existing user, just overwrite the name & updatedAt
-    if (this.user()) {
-      user.name = this.userForm.value.name;
-      user.updatedAt = now.toISOString();
-    }
+    user.name = this.userForm.value.name;
+    user.updatedAt = now.toISOString();
 
     const generatorsList: GeneratorOutput[] = this.generatorTypes()
       .map(t => ({
@@ -141,11 +138,13 @@ export class Form implements OnInit {
     };
 
     try {
-      console.log(JSON.stringify(payload, null, 4));
       const result = await this.api.upsertUserWithGenerators(payload);
+      await this.router.navigate(["/list"])
       console.log('User saved:', result);
     } catch (err: any) {
       console.error('Failed to save user:', err);
     }
+
+
   }
 }

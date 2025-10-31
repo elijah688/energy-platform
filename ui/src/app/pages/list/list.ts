@@ -48,6 +48,7 @@ export class List implements OnInit, AfterViewInit {
     return fullId.substring(0, 8);
   }
   async ngOnInit() {
+    this.userServ.searchTerm.set('')
     await this.userServ.fetchUsers();
   }
 
@@ -96,7 +97,7 @@ export class List implements OnInit, AfterViewInit {
   // Helper methods for template
   getGeneratorsForUser(userId: string): GeneratorOutput[] {
     const userGens = this.genService.userGenerators()[userId];
-    return userGens?.generators.filter(x=>x.count>0) || [];
+    return userGens?.generators.filter(x => x.count > 0) || [];
   }
 
   getTotalGeneratorsForUser(userId: string): number {
