@@ -1,7 +1,6 @@
 using System.Threading.Channels;
 using Shared.Model;
 using Shared.DB;
-using Shared.Utils;
 
 namespace GeneratorDaemon.src.GeneratorProcess
 {
@@ -19,23 +18,31 @@ namespace GeneratorDaemon.src.GeneratorProcess
 
                 while (true)
                 {
-                    var generators = GeneratorsDB.GetGenerators(limit, offset);
-                    if (generators.Count == 0)
+
+                    var users = UsersDB.GetUsers(limit, offset);
+                    if (users.Count == 0)
                     {
                         _channel.Writer.Complete();
                         return;
                     }
 
-                    var updates = generators
-                       .GroupBy(g => g.OwnerId)
-                       .Select(g => new UserEnergyUpdate
-                       {
-                           UserId = g.Key,
-                           Energy = g.Sum(gen => gen.ProductionRate)
-                       })
-                       .ToList();
-                    await _channel.Writer.WriteAsync(updates);
+                    var tasks = users.Select(user =>
+                        Task.Run(() =>
+                        {
+                            var gen = GeneratorsDB.GetGenerators(user.Id);
+                            return new { user.Id, gen.TotalKwh };
+                        })
+                    );
 
+                    var results = await Task.WhenAll(tasks);
+
+                    var updates = results
+                        .Where(r => r.TotalKwh > 0)
+                        .Select(r => new UserEnergyUpdate(r.Id, r.TotalKwh))
+                        .ToList();
+
+
+                    await _channel.Writer.WriteAsync(updates);
 
                     offset += limit;
 

@@ -7,6 +7,7 @@ namespace Shared.DB
     {
 
         public static UserGenerators GetGenerators(Guid userId)
+        
         {
             using var conn = GetConnection();
             using var cmd = new NpgsqlCommand(

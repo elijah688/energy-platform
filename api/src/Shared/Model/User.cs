@@ -22,13 +22,7 @@ namespace Shared.Model
         )
         { }
     }
-
-    public class UserEnergyUpdate
-    {
-        public Guid UserId { get; set; }
-        public decimal Energy { get; set; }
-    }
-
+    public record UserEnergyUpdate(Guid UserId, decimal Energy);
 
 
 

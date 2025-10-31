@@ -100,7 +100,7 @@ namespace TransactionServer
 
 
 
-            app.MapGet("/usergenerators/{userId}", (Guid userId) =>
+            app.MapGet("/usergenerators/{userId}", async (Guid userId) =>
             {
                 try
                 {

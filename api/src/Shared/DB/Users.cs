@@ -114,29 +114,29 @@ namespace Shared.DB
 
             using var conn = GetConnection();
             using var tran = conn.BeginTransaction();
-            using var cmd = new NpgsqlCommand
-            {
-                Connection = conn,
-                Transaction = tran
-            };
+            using var cmd = new NpgsqlCommand { Connection = conn, Transaction = tran };
 
-            cmd.CommandText = @"
-            UPDATE users
-            SET energy_stored = energy_stored + @energyStored,
-                updated_at = NOW()
-            WHERE id = @id
+            // Build the VALUES list dynamically
+            var values = string.Join(", ", updates.Select((u, i) => $"(@id{i}, @energy{i})"));
+
+            cmd.CommandText = $@"
+                UPDATE users u
+                SET energy_stored = u.energy_stored + v.energy,
+                    updated_at = NOW()
+                FROM (VALUES {values}) AS v(id, energy)
+                WHERE u.id = v.id;
             ";
 
-            foreach (var update in updates)
+            // Add parameters
+            for (int i = 0; i < updates.Count; i++)
             {
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("id", update.UserId);
-                cmd.Parameters.AddWithValue("energyStored", update.Energy);
-
-                cmd.ExecuteNonQuery();
+                cmd.Parameters.AddWithValue($"id{i}", updates[i].UserId);
+                cmd.Parameters.AddWithValue($"energy{i}", updates[i].Energy);
             }
 
+            cmd.ExecuteNonQuery();
             tran.Commit();
         }
+
     }
 }
