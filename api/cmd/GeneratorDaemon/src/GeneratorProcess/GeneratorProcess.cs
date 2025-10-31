@@ -4,7 +4,7 @@ using Shared.DB;
 
 namespace GeneratorDaemon.src.GeneratorProcess
 {
-    public class GeneratorProcess()
+    public class GeneratorProcess
     {
         private readonly Channel<List<UserEnergyUpdate>> _channel = Channel.CreateUnbounded<List<UserEnergyUpdate>>();
 
@@ -12,48 +12,55 @@ namespace GeneratorDaemon.src.GeneratorProcess
         {
             var producer = Task.Run(async () =>
             {
-
-                int limit = int.TryParse(Environment.GetEnvironmentVariable("LIMIT"), out int temp) ? temp : 100;
-                int offset = 0;
-
-                while (true)
+                try
                 {
+                    int limit = int.TryParse(Environment.GetEnvironmentVariable("LIMIT"), out int temp) ? temp : 100;
+                    int offset = 0;
 
-                    var users = UsersDB.GetUsers(limit, offset);
-                    if (users.Count == 0)
+                    while (true)
                     {
-                        _channel.Writer.Complete();
-                        return;
-                    }
+                        var users = UsersDB.GetUsers(limit, offset);
+                        Console.WriteLine($"Fetched {users.Count} users at offset {offset}");
 
-                    var tasks = users.Select(user =>
-                        Task.Run(() =>
+                        if (users.Count == 0)
                         {
-                            var gen = GeneratorsDB.GetGenerators(user.Id);
-                            return new { user.Id, gen.TotalKwh };
-                        })
-                    );
+                            _channel.Writer.Complete();
+                            break;
+                        }
 
-                    var results = await Task.WhenAll(tasks);
+                        var results = await Task.WhenAll(
+                            users.Select(user =>
+                                Task.Run(() =>
+                                {
+                                    var gen = GeneratorsDB.GetGenerators(user.Id);
+                                    return new { user.Id, gen.TotalKwh };
+                                })
+                        ));
 
-                    var updates = results
-                        .Where(r => r.TotalKwh > 0)
-                        .Select(r => new UserEnergyUpdate(r.Id, r.TotalKwh))
-                        .ToList();
+                        var updates = results
+                            .Where(r => r.TotalKwh > 0)
+                            .Select(r => new UserEnergyUpdate(r.Id, r.TotalKwh))
+                            .ToList();
 
+                        await _channel.Writer.WriteAsync(updates);
 
-                    await _channel.Writer.WriteAsync(updates);
+                        offset += limit;
 
-                    offset += limit;
-
+                    }
                 }
-
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Producer exception: {ex}");
+                    _channel.Writer.Complete();
+                    throw;
+                }
             });
 
             var consumer = Task.Run(async () =>
             {
                 await foreach (var energyUpdates in _channel.Reader.ReadAllAsync())
                 {
+                    Console.WriteLine($"Updating {energyUpdates.Count} users");
                     UsersDB.UpdateUsersEnergyStore(energyUpdates);
                 }
             });

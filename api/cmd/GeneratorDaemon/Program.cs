@@ -10,6 +10,7 @@ namespace GeneratorDaemon
             while (true)
             {
                 var gp = new GeneratorProcess();
+
                 await gp.RunAsync();
                 await Task.Delay(TimeSpan.FromSeconds(2));
 
