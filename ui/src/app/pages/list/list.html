@@ -88,7 +88,7 @@
     </mat-accordion>
   </mat-card>
   } @empty {
-  <p>No users found</p>
+  <p>No more users</p>
   }
 </div>
 
@@ -98,7 +98,7 @@
     ← Previous
   </button>
   <button mat-raised-button (click)="nextPage()"
-    [disabled]="userServ.users().length === 0 || userServ.users().length < userServ.limit">
+    [disabled]="userServ.users().length === 0">
     Next →
   </button>
 </div>
