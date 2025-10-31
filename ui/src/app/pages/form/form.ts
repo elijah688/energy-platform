@@ -3,15 +3,37 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+
+// Angular Material imports
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+
 import { User } from '../../model/user';
 import { EnergyGenerator, GENERATOR_TYPES } from '../../model/generator';
 
 @Component({
   selector: 'app-generator-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    // Angular Material modules
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule
+  ],
   templateUrl: './form.html',
-  styleUrls: ['./form.sass']
+  styleUrl: './form.sass'
 })
 export class Form implements OnInit {
   private fb = inject(FormBuilder);
@@ -73,9 +95,7 @@ export class Form implements OnInit {
 
   // Increment generator count for a type
   incrementGenerator(type: string): void {
-    console.log(type)
     this.generatorCounts[type]++;
-    console.log(this.generatorCounts)
     // Auto-select the type when adding generators
     if (!this.selectedType) {
       this.selectType(type);
