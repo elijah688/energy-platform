@@ -92,7 +92,7 @@ export class Trade implements OnInit {
       next: res => {
         console.log('Transaction completed:', res.message);
         this.userService.selecterUsers.set([]);
-        this.userService.fetchUsers(this.userService.limit, this.userService.offset);
+        this.userService.fetchUsers();
         this.snackBar.open('Transaction executed successfully', 'Close', { duration: 2000 });
         this.router.navigate(['/list']);
       },

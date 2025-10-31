@@ -6,10 +6,7 @@ import { User } from '../../model/user';
 import { UserTransactionsMap } from '../../model/transaction';
 import { Api } from '../api';
 
-@Injectable({
-  providedIn: 'root'
-})
-
+@Injectable({ providedIn: 'root' })
 export class UserService {
   public users = signal<User[]>([]);
   public selecterUsers = signal<User[]>([]);
@@ -23,20 +20,17 @@ export class UserService {
   private apiUrl = `http://localhost:${environment.backendPort}`;
 
   public limit = 3;
-  public offset = 0;
   public currentPage = 0;
 
-  fetchOfUsers(
-    limit: number = this.limit,
-    offset: number = this.offset,
-  ): Observable<User[]> {
-    this.limit = limit;
-    this.offset = offset;
-    this.currentPage = Math.floor(offset / limit);
+  // Compute offset dynamically
+  private get offset() {
+    return this.currentPage * this.limit;
+  }
 
+  fetchOfUsers(): Observable<User[]> {
     const params = new URLSearchParams();
-    params.set('limit', limit.toString());
-    params.set('offset', offset.toString());
+    params.set('limit', this.limit.toString());
+    params.set('offset', this.offset.toString());
     params.set('name', this.searchTerm());
 
     return this.http.get<User[]>(`${this.apiUrl}/users?${params.toString()}`).pipe(
@@ -44,31 +38,27 @@ export class UserService {
         const selectedIds = new Set(this.selecterUsers().map(u => u.id));
         return users.filter(u => !selectedIds.has(u.id));
       }),
-      tap(filtered => this.users.set(filtered)), // optional side effect
+      tap(filtered => this.users.set(filtered)),
       catchError(err => {
         console.error('Failed to fetch users', err);
         return of([]);
       })
     );
   }
-  async fetchUsers(
-    limit: number = this.limit,
-    offset: number = this.offset,
-  ) {
-    await firstValueFrom(this.fetchOfUsers(limit, offset));
+
+  async fetchUsers() {
+    await firstValueFrom(this.fetchOfUsers());
   }
 
-
   async next() {
-    this.offset += this.limit;
-    await this.fetchUsers(this.limit, this.offset);
-
+    this.currentPage++;
+    await this.fetchUsers();
   }
 
   async prev() {
-    if (this.offset >= this.limit) {
-      this.offset -= this.limit;
-      await this.fetchUsers(this.limit, this.offset);
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      await this.fetchUsers();
     }
   }
 
@@ -77,8 +67,6 @@ export class UserService {
 
     this.selecterUsers.set([...this.selecterUsers(), user]);
     this.users.set(this.users().filter(u => u.id !== user.id));
-
-    // Track the page where the user was selected
     this.userAddedPage.set(user.id, this.currentPage);
   }
 
@@ -92,7 +80,4 @@ export class UserService {
 
     this.userAddedPage.delete(user.id);
   }
-
-
-
 }

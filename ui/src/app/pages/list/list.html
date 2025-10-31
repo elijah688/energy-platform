@@ -99,7 +99,7 @@
 
 <!-- Users pagination -->
 <div class="pagination">
-  <button mat-raised-button (click)="prevPage()" [disabled]="userServ.offset === 0">
+  <button mat-raised-button (click)="prevPage()" [disabled]="userServ.currentPage === 0">
     ← Previous
   </button>
   <button mat-raised-button (click)="nextPage()" [disabled]="userServ.users().length === 0">

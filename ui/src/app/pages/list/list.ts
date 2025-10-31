@@ -59,7 +59,7 @@ export class List implements OnInit, AfterViewInit {
   async onSearch(event: Event) {
     const input = (event.target as HTMLInputElement).value.trim();
     this.userServ.searchTerm.set(input)
-    await this.userServ.fetchUsers(this.userServ.limit, 0);
+    await this.userServ.fetchUsers();
   }
 
   async nextPage() {
