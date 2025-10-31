@@ -9,7 +9,8 @@ import { MatCard } from '@angular/material/card';
 import { Router, RouterLink, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
-import { GeneratorOutput } from '../../model/generator';
+import { GeneratorOutput, GeneratorType } from '../../model/generator';
+import { Api } from '../../services/api';
 
 @Component({
   selector: 'app-list',
@@ -33,15 +34,12 @@ export class List implements OnInit, AfterViewInit {
   userServ = inject(UserService);
   transService = inject(TransactionService);
   genService = inject(GeneratorService);
+  api = inject(Api);
 
   @ViewChildren(MatAccordion) accordions!: QueryList<MatAccordion>;
 
   // Generator type configuration
-  private generatorTypes = {
-    Wind: { label: 'Wind Turbine', icon: 'air', unitRate: 25 },
-    Solar: { label: 'Solar Panel', icon: 'wb_sunny', unitRate: 20 },
-    Hydro: { label: 'Hydro Electric', icon: 'water_drop', unitRate: 40 }
-  };
+  private generatorTypes: Record<string, GeneratorType> = {};
 
   // Add this helper method to the component class
   getShortId(fullId: string): string {
@@ -49,6 +47,10 @@ export class List implements OnInit, AfterViewInit {
   }
   async ngOnInit() {
     this.userServ.searchTerm.set('')
+    const gts = await this.api.fetchGeneratorTypes()
+    gts.forEach(gt => {
+      this.generatorTypes[gt.typeKey] = gt;
+    });
     await this.userServ.fetchUsers();
   }
 
@@ -119,6 +121,6 @@ export class List implements OnInit, AfterViewInit {
   }
 
   getUnitRate(type: string): number {
-    return this.generatorTypes[type as keyof typeof this.generatorTypes]?.unitRate || 0;
+    return this.generatorTypes[type as keyof typeof this.generatorTypes]?.productionRateKwh || 0;
   }
 }
