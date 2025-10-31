@@ -1,11 +1,12 @@
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatCardActions, MatCardModule } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { User } from '../../model/user';
 import { EnergyGenerator } from '../../model/generator';
@@ -17,7 +18,8 @@ import { EnergyGenerator } from '../../model/generator';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule
+    MatButtonModule,
+    MatSnackBarModule
   ],
   selector: 'app-user-form',
   templateUrl: './form.html',
@@ -31,7 +33,8 @@ export class Form implements OnInit {
   generatorTypes = ['Wind', 'Solar'];
   editing = false;
 
-  constructor(private fb: FormBuilder) { }
+  private snackBar = inject(MatSnackBar);
+  private fb = inject(FormBuilder);
 
   ngOnInit(): void {
     this.editing = !!this.user;
@@ -59,11 +62,15 @@ export class Form implements OnInit {
       this.fb.group({
         id: [gen?.id || ''],
         type: [gen?.type || '', Validators.required],
-        productionRate: [gen?.productionRate || 0, [Validators.required, Validators.min(0)]],
+        productionRate: [
+          gen?.productionRate || 1,
+          [Validators.required, Validators.min(1)] // changed min to 1
+        ],
         status: [gen?.status || 'Active', Validators.required]
       })
     );
   }
+
 
   removeGenerator(index: number) {
     this.generators.removeAt(index);
@@ -74,6 +81,10 @@ export class Form implements OnInit {
       const payload = this.userForm.getRawValue();
       console.log('Submit payload', payload);
       // call API to create/update user + generators
+    } else {
+      this.snackBar.open('Form is invalid. Please fill in all required fields correctly.', 'Close', {
+        duration: 3000
+      });
     }
   }
 }
