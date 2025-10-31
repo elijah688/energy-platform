@@ -1,126 +1,69 @@
 using Shared.Model;
 using Npgsql;
+
 namespace Shared.DB
 {
     public class GeneratorsDB : BaseDB
     {
-        public static List<Generator> GetGenerators(int limit = 100, int offset = 0)
+        public static void UpsertUserGenerators(Guid userId, List<UserGeneratorUpdate> updates)
         {
-            var generators = new List<Generator>();
-
-            using var conn = GetConnection();
-            using var cmd = new NpgsqlCommand(
-                @"SELECT id, type, production_rate, owner_id, status, last_generated_at
-                  FROM generators
-                  ORDER BY created_at, id
-                  LIMIT @limit OFFSET @offset", conn
-            );
-
-            cmd.Parameters.AddWithValue("limit", limit);
-            cmd.Parameters.AddWithValue("offset", offset);
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                generators.Add(new Generator
-                {
-                    Id = reader.GetGuid(0),
-                    Type = reader.GetString(1),
-                    ProductionRate = reader.GetDecimal(2),
-                    OwnerId = reader.GetGuid(3),
-                    Status = reader.GetString(4),
-                    LastGeneratedAt = reader.IsDBNull(5) ? null : reader.GetDateTime(5)
-                });
-            }
-
-            return generators;
-        }
-
-        public static void UpsertGenerators(List<Generator> generators)
-        {
-            if (generators.Count == 0) return;
+            if (updates == null || updates.Count == 0)
+                return;
 
             using var conn = GetConnection();
             using var tran = conn.BeginTransaction();
+
+            // Prepare arrays for batch processing
+            var generatorTypes = updates.Select(u => u.GeneratorType).ToArray();
+            var counts = updates.Select(u => u.Count).ToArray();
+
+            // Create userId array with same length as updates
+            var userIds = Enumerable.Repeat(userId, updates.Count).ToArray();
+
+            // Single batch insert/update - database trigger handles total_kwh_rate
             using var cmd = new NpgsqlCommand { Connection = conn, Transaction = tran };
-
             cmd.CommandText = @"
-                INSERT INTO generators (id, type, production_rate, owner_id, status, last_generated_at, created_at, updated_at)
-                VALUES (@id, @type, @rate, @ownerId, @status, @lastGeneratedAt, NOW(), NOW())
-                ON CONFLICT (id) DO UPDATE
-                SET type = EXCLUDED.type,
-                    production_rate = EXCLUDED.production_rate,
-                    owner_id = EXCLUDED.owner_id,
-                    status = EXCLUDED.status,
-                    last_generated_at = EXCLUDED.last_generated_at,
-                    updated_at = NOW()
-            ";
+                INSERT INTO user_generators (user_id, generator_type, count, updated_at)
+                SELECT u.user_id, u.generator_type, u.count, NOW()
+                FROM UNNEST(@userIds, @generatorTypes, @counts) 
+                AS u(user_id UUID, generator_type TEXT, count INTEGER)
+                ON CONFLICT (user_id, generator_type) DO UPDATE
+                SET count = EXCLUDED.count,
+                    updated_at = NOW()";
 
-            foreach (var gen in generators)
-            {
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("id", gen.Id);
-                cmd.Parameters.AddWithValue("type", gen.Type);
-                cmd.Parameters.AddWithValue("rate", gen.ProductionRate);
-                cmd.Parameters.AddWithValue("ownerId", gen.OwnerId);
-                cmd.Parameters.AddWithValue("status", gen.Status);
-                cmd.Parameters.AddWithValue("lastGeneratedAt", (object?)gen.LastGeneratedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("userIds", userIds);
+            cmd.Parameters.AddWithValue("generatorTypes", generatorTypes);
+            cmd.Parameters.AddWithValue("counts", counts);
 
-                cmd.ExecuteNonQuery();
-            }
-
+            cmd.ExecuteNonQuery();
             tran.Commit();
         }
 
-
-        public static UserGeneratorsMap GetGeneratorsByUserIds(List<Guid> userIds, int limit = 50, int offset = 0)
+        public static UserGenerators GetGenerators(Guid userId)
         {
-            var result = new UserGeneratorsMap();
-
-            if (userIds == null || userIds.Count == 0)
-                return result;
-
             using var conn = GetConnection();
+            using var cmd = new NpgsqlCommand(
+                @"SELECT ug.generator_type, ug.count, ug.total_kwh_rate
+                  FROM user_generators ug
+                  WHERE ug.user_id = @userId", conn);
+            
+            cmd.Parameters.AddWithValue("userId", userId);
 
-            foreach (var userId in userIds)
+            using var reader = cmd.ExecuteReader();
+            var generators = new List<GeneratorOutput>();
+            decimal totalKwh = 0;
+
+            while (reader.Read())
             {
-                var generators = new List<Generator>();
+                var type = reader.GetString(0);
+                var count = reader.GetInt32(1);
+                var totalKwhPerType = reader.GetDecimal(2);
 
-                using var cmd = new NpgsqlCommand(
-                    @"SELECT id, type, production_rate, owner_id, status, last_generated_at, created_at, updated_at
-                      FROM generators
-                      WHERE owner_id = @ownerId
-                      ORDER BY created_at, id
-                      LIMIT @limit OFFSET @offset", conn);
-
-                cmd.Parameters.AddWithValue("ownerId", userId);
-                cmd.Parameters.AddWithValue("limit", limit);
-                cmd.Parameters.AddWithValue("offset", offset);
-
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    generators.Add(new Generator
-                    {
-                        Id = reader.GetGuid(0),
-                        Type = reader.GetString(1),
-                        ProductionRate = reader.GetDecimal(2),
-                        OwnerId = reader.GetGuid(3),
-                        Status = reader.GetString(4),
-                        LastGeneratedAt = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
-                        CreatedAt = reader.GetDateTime(6),
-                        UpdatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7)
-                    });
-                }
-
-                result[userId] = generators;
+                generators.Add(new GeneratorOutput(type, count, totalKwhPerType));
+                totalKwh += totalKwhPerType;
             }
 
-            return result;
+            return new UserGenerators(generators, totalKwh);
         }
     }
 }
-
-
-
-

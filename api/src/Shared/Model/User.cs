@@ -19,11 +19,6 @@ namespace Shared.Model
 
 
 
-    public class UserWithGenerators
-    {
-        public User User { get; set; } = new();
-        public List<Generator> Generators { get; set; } = new();
-    }
 
 
 

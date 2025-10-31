@@ -1,72 +1,203 @@
-.user-info
+// Core palette
+$rose-base: #e91e63
+$rose-light: #f48fb1
+$rose-dark: #ad1457
+$rose-bg: #fff5f7
+$text-color: #2c2c2c
+$muted-text: #757575
+
+// Global layout
+.search-bar-container
   display: flex
-  flex-direction: column
-  gap: 0.25rem
-  margin-bottom: 1rem
-  font-size: 0.95rem
-  color: #4a3f4a // muted dark rose
-
-.generator-card, .transaction-card
-  margin: 0.5rem 0
-  padding: 0.5rem
-  border-radius: 6px
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08)
-  font-size: 0.9rem
-  background: #fff0f5 // very light rose
-
-mat-accordion
-  width: 100%
-  margin-top: 0.75rem // space between button and accordion
-  .mat-expansion-panel-header
-    border-radius: 6px
-    font-weight: 500
-    font-size: 0.95rem
-    background: #ffe6f0 // soft rose header
-    color: #4a3f4a
-
-p
-  font-style: italic
-  color: rgba(74,63,74,0.7)
-
-.users-grid, .transaction-users-grid
-  display: grid
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
-  gap: 1rem
   justify-content: center
-  max-width: 1000px
-  margin: 0 auto
+  padding: 1rem 0
+  background-color: $rose-bg
+  border-bottom: 1px solid rgba($rose-dark, 0.1)
+
+.search-bar
+  width: 60%
+  max-width: 600px
+  mat-form-field
+    width: 100%
+
+.users-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+  gap: 1.5rem
+  padding: 2rem
 
 .user-card
-  padding: 1rem
-  border-radius: 8px
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1)
-  background: #fff0f5 // light rose base
+  border-radius: 1.25rem
+  background: #fff
+  box-shadow: 0 2px 10px rgba($rose-dark, 0.1)
+  transition: all 0.25s ease
+  border: 1px solid rgba($rose-base, 0.05)
+  display: flex
+  flex-direction: column
+  justify-content: space-between
 
-.user-card.picked
-  background: #ffe6f0 // slightly lighter rose
-  border: 1px solid #d46f8b // rose accent
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08)
+  &:hover
+    transform: translateY(-3px)
+    box-shadow: 0 6px 16px rgba($rose-base, 0.2)
+
+  .user-info
+    padding: 1rem
+    color: $text-color
+
+    strong
+      color: $rose-dark
+
+    .user-id
+      font-size: 0.75rem
+      color: $muted-text
+      margin-top: 0.25rem
+
+  button
+    margin: 1rem
+    border-radius: 9999px
+    text-transform: none
+    background-color: $rose-base
+    color: white
+    font-weight: 500
+
+    &:hover
+      background-color: $rose-dark
+
+.generators-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+  gap: 1rem
+  padding: 1rem
+
+.generator-item
+  padding: 1rem
+  text-align: center
+  border-radius: 0.75rem
+  background: rgba($rose-light, 0.15)
+  transition: background-color 0.2s ease
+
+  &.has-generators
+    background: rgba($rose-base, 0.12)
+    border: 1px solid rgba($rose-dark, 0.2)
+
+  .generator-header
+    display: flex
+    flex-direction: column
+    align-items: center
+    margin-bottom: 0.5rem
+
+  .generator-icon
+    color: $rose-base
+    font-size: 1.8rem
+
+  .generator-label
+    font-weight: 600
+    color: $rose-dark
+    font-size: 0.9rem
+
+  .generator-count, .generator-production
+    color: $text-color
+    font-size: 0.85rem
+
+.transaction-item
+  background: rgba($rose-base, 0.05)
+  border-left: 3px solid $rose-base
+  padding: 0.75rem 1rem
+  margin: 0.5rem 0
+  border-radius: 0.5rem
+  font-size: 0.9rem
+
+  .tx-row
+    display: flex
+    justify-content: space-between
+    color: $text-color
+    .tx-label
+      font-weight: 600
+      color: $rose-dark
+
+.no-generators, .no-transactions
+  text-align: center
+  color: $muted-text
+  padding: 1rem
 
 .pagination
   display: flex
   justify-content: center
   gap: 1rem
-  margin-top: 1rem
+  padding: 2rem 0
 
-.transaction-header
-  text-align: center
-  margin: 1.5rem 0 1rem 0
+  button
+    background-color: $rose-light
+    color: white
+    font-weight: 500
+    border-radius: 2rem
+
+    &:hover
+      background-color: $rose-base
+
+.selected-users
+  margin: 2rem
+  padding: 2rem
+  background: rgba($rose-base, 0.05)
+  border-radius: 1.25rem
+  box-shadow: 0 2px 10px rgba($rose-dark, 0.15)
+
   h3
-    margin: 0
-    font-weight: 600
-    color: #4a3f4a // keep it in rose palette
+    color: $rose-dark
+    text-align: center
+    margin-bottom: 1rem
 
-.search-bar-container
+  .selected-grid
+    display: flex
+    gap: 1rem
+    justify-content: center
+    flex-wrap: wrap
+
+  .user-card.selected
+    border: 1px solid $rose-base
+    box-shadow: 0 3px 8px rgba($rose-base, 0.2)
+
+.trade-action
   display: flex
   justify-content: center
-  margin-bottom: 1rem
-  width: 100%
+  padding-top: 1rem
 
-.search-bar
-  width: 100%
-  max-width: 400px
+  button
+    background: $rose-base
+    color: white
+    font-weight: 600
+    border-radius: 9999px
+
+    &:hover
+      background: $rose-dark
+
+  // --- Button State Enhancements ---
+
+button[disabled],
+.mat-mdc-button[disabled],
+.mat-mdc-raised-button[disabled],
+.mat-mdc-outlined-button[disabled]
+  opacity: 0.45
+  cursor: not-allowed
+  background-color: rgba($rose-base, 0.25) !important
+  color: rgba(255, 255, 255, 0.6) !important
+  box-shadow: none !important
+  border: none
+
+button:not([disabled]),
+.mat-mdc-button:not([disabled]),
+.mat-mdc-raised-button:not([disabled]),
+.mat-mdc-outlined-button:not([disabled])
+  transition: all 0.2s ease
+  cursor: pointer
+  background-color: $rose-base
+  color: white
+  font-weight: 500
+
+  &:hover
+    background-color: $rose-dark
+    box-shadow: 0 4px 10px rgba($rose-base, 0.3)
+
+  &:focus-visible
+    outline: 2px solid rgba($rose-base, 0.5)
+    outline-offset: 3px

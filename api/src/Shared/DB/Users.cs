@@ -48,12 +48,13 @@ namespace Shared.DB
         }
 
 
-        public static void UpsertUsers(List<User> users)
+        public static void UpsertUser(User user)
         {
-            if (users.Count == 0) return;
+            if (user == null) return;
 
             using var conn = GetConnection();
             using var tran = conn.BeginTransaction();
+
             using var cmd = new NpgsqlCommand { Connection = conn, Transaction = tran };
 
             cmd.CommandText = @"
@@ -63,20 +64,15 @@ namespace Shared.DB
                 SET name = EXCLUDED.name,
                     balance = EXCLUDED.balance,
                     energy_stored = EXCLUDED.energy_stored,
-                    updated_at = NOW()
-            ";
+                    updated_at = NOW()";
 
-            foreach (var user in users)
-            {
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("id", user.Id);
-                cmd.Parameters.AddWithValue("name", user.Name);
-                cmd.Parameters.AddWithValue("balance", user.Balance);
-                cmd.Parameters.AddWithValue("energyStored", user.EnergyStored);
-                cmd.Parameters.AddWithValue("createdAt", user.CreatedAt);
-                cmd.ExecuteNonQuery();
-            }
+            cmd.Parameters.AddWithValue("id", user.Id);
+            cmd.Parameters.AddWithValue("name", user.Name);
+            cmd.Parameters.AddWithValue("balance", user.Balance);
+            cmd.Parameters.AddWithValue("energyStored", user.EnergyStored);
+            cmd.Parameters.AddWithValue("createdAt", user.CreatedAt);
 
+            cmd.ExecuteNonQuery();
             tran.Commit();
         }
 

@@ -1,13 +1,15 @@
 import { Component, OnInit, inject, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
-import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { MatAccordion, MatExpansionPanel, MatExpansionPanelDescription, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { MatIcon } from '@angular/material/icon';
+import { MatDivider } from '@angular/material/divider';
 import { UserService } from '../../services/list/users';
 import { TransactionService } from '../../services/list/transaction';
 import { GeneratorService } from '../../services/list/generator';
 import { MatCard } from '@angular/material/card';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
-import { MatListHarness } from '@angular/material/list/testing';
+import { GeneratorOutput } from '../../model/generator';
 
 @Component({
   selector: 'app-list',
@@ -17,11 +19,12 @@ import { MatListHarness } from '@angular/material/list/testing';
     MatAccordion,
     MatExpansionPanelHeader,
     MatExpansionPanelTitle,
-    RouterLink,
     MatButtonModule,
     MatInput,
     MatLabel,
     MatFormField,
+    MatIcon,
+    RouterModule
   ],
   templateUrl: './list.html',
   styleUrls: ['./list.sass']
@@ -33,6 +36,17 @@ export class List implements OnInit, AfterViewInit {
 
   @ViewChildren(MatAccordion) accordions!: QueryList<MatAccordion>;
 
+  // Generator type configuration
+  private generatorTypes = {
+    Wind: { label: 'Wind Turbine', icon: 'air', unitRate: 25 },
+    Solar: { label: 'Solar Panel', icon: 'wb_sunny', unitRate: 20 },
+    Hydro: { label: 'Hydro Electric', icon: 'water_drop', unitRate: 40 }
+  };
+
+  // Add this helper method to the component class
+  getShortId(fullId: string): string {
+    return fullId.substring(0, 8);
+  }
   async ngOnInit() {
     await this.userServ.fetchUsers();
   }
@@ -40,6 +54,7 @@ export class List implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     // All accordions are available here
   }
+
   async onSearch(event: Event) {
     const input = (event.target as HTMLInputElement).value.trim();
     this.userServ.searchTerm.set(input)
@@ -73,16 +88,36 @@ export class List implements OnInit, AfterViewInit {
     await this.transService.prevPage(userId);
   }
 
-  /** Generators */
+  /** Generators - now fetches all at once */
   async fetchUserGenerators(userId: string) {
     await this.genService.fetchGeneratorsForUser(userId);
   }
 
-  async nextUserGenPage(userId: string) {
-    await this.genService.nextPage(userId);
+  // Helper methods for template
+  getGeneratorsForUser(userId: string): GeneratorOutput[] {
+    const userGens = this.genService.userGenerators()[userId];
+    return userGens?.generators || [];
   }
 
-  async prevUserGenPage(userId: string) {
-    await this.genService.prevPage(userId);
+  getTotalGeneratorsForUser(userId: string): number {
+    const generators = this.getGeneratorsForUser(userId);
+    return generators.reduce((total, gen) => total + gen.count, 0);
+  }
+
+  getTotalKwhForUser(userId: string): number {
+    const userGens = this.genService.userGenerators()[userId];
+    return userGens?.totalKwh || 0;
+  }
+
+  getGeneratorLabel(type: string): string {
+    return this.generatorTypes[type as keyof typeof this.generatorTypes]?.label || type;
+  }
+
+  getGeneratorIcon(type: string): string {
+    return this.generatorTypes[type as keyof typeof this.generatorTypes]?.icon || 'help';
+  }
+
+  getUnitRate(type: string): number {
+    return this.generatorTypes[type as keyof typeof this.generatorTypes]?.unitRate || 0;
   }
 }

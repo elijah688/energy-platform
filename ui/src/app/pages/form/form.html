@@ -1,4 +1,4 @@
-<!-- generator-form.component.html -->
+generator-form.component.html
 <div class="form-container">
   <mat-card class="form-card">
     <mat-card-header class="form-header">
@@ -50,9 +50,9 @@
                 (click)="selectType(type[0])"
               >
                 <mat-card-header class="generator-type-header">
-                  <mat-icon matCardAvatar>{{ type[1].icon }}</mat-icon>
-                  <mat-card-title class="generator-name">{{ type[1].label }}</mat-card-title>
-                  <mat-card-subtitle class="generator-rate">{{ type[1].productionRate }} kWh each</mat-card-subtitle>
+                  <!-- <mat-icon matCardAvatar>{{ type[1].icon }}</mat-icon> -->
+                  <!-- <mat-card-title class="generator-name">{{ type[1].label }}</mat-card-title> -->
+                  <!-- <mat-card-subtitle class="generator-rate">{{ type[1].productionRate }} kWh each</mat-card-subtitle> -->
                 </mat-card-header>
 
                 <mat-card-content>
@@ -133,8 +133,8 @@
                   @for (type of availableTypes; track type[0]) {
                     @if (getGeneratorCount(type[0]) > 0) {
                       <div class="breakdown-item">
-                        <mat-icon class="breakdown-icon">{{ type[1].icon }}</mat-icon>
-                        <span class="breakdown-type">{{ type[1].label }}:</span>
+                        <!-- <mat-icon class="breakdown-icon">{{ type[1].icon }}</mat-icon> -->
+                        <!-- <span class="breakdown-type">{{ type[1].label }}:</span> -->
                         <span class="breakdown-count">{{ getGeneratorCount(type[0]) }}</span>
                         <span class="breakdown-production">({{ getTotalProduction(type[0]) }} kWh)</span>
                       </div>

@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ========================================================
--- Energy Trading App Schema
+-- Energy Trading App Schema (Simplified)
 -- ========================================================
 
 -- Users table
@@ -10,72 +10,106 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     balance NUMERIC(12,2) NOT NULL DEFAULT 0,
     energy_stored NUMERIC(12,2) NOT NULL DEFAULT 0,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
 
--- Generators table
-CREATE TABLE IF NOT EXISTS generators (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type TEXT NOT NULL, -- 'Wind' or 'Solar'
-    production_rate NUMERIC(10,2) NOT NULL,
-    owner_id UUID NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active',
-    last_generated_at TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES users(id),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-
+-- Generator types with kWh production rates
+CREATE TABLE IF NOT EXISTS generator_types (
+    type_key TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    production_rate_kwh NUMERIC(10,2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_generators_owner ON generators(owner_id);
+-- User generators - composite primary key, stores counts and total kWh
+CREATE TABLE IF NOT EXISTS user_generators (
+    user_id UUID NOT NULL,
+    generator_type TEXT NOT NULL,
+    count INTEGER NOT NULL DEFAULT 0,
+    total_kwh_rate NUMERIC(12,2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Composite primary key
+    PRIMARY KEY (user_id, generator_type),
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (generator_type) REFERENCES generator_types(type_key),
+    
+    CONSTRAINT valid_count CHECK (count >= 0)
+);
 
--- Transactions / Trades table
+CREATE INDEX IF NOT EXISTS idx_user_generators_user ON user_generators(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_generators_type ON user_generators(generator_type);
+
+-- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     seller_id UUID NOT NULL,
-    buyer_id UUID, -- NULL if sold to market
+    buyer_id UUID,
     energy_amount NUMERIC(10,2) NOT NULL,
     price_per_kwh NUMERIC(10,4) NOT NULL,
     total_price NUMERIC(12,2) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
     FOREIGN KEY (seller_id) REFERENCES users(id),
-    FOREIGN KEY (buyer_id) REFERENCES users(id)
+    FOREIGN KEY (buyer_id) REFERENCES users(id),
+    
+    CONSTRAINT positive_energy CHECK (energy_amount > 0),
+    CONSTRAINT positive_price CHECK (price_per_kwh > 0)
 );
 
-CREATE INDEX IF NOT EXISTS idx_transactions_seller ON transactions(seller_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_buyer ON transactions(buyer_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at);
+-- ========================================================
+-- Insert Generator Types (with your kWh values)
+-- ========================================================
+INSERT INTO generator_types (type_key, label, icon, production_rate_kwh) VALUES
+('Wind', 'Wind Turbine', 'air', 25.00),
+('Solar', 'Solar Panel', 'wb_sunny', 20.00),
+('Hydro', 'Hydro Electric', 'water_drop', 40.00)
+ON CONFLICT (type_key) DO UPDATE SET
+    label = EXCLUDED.label,
+    icon = EXCLUDED.icon,
+    production_rate_kwh = EXCLUDED.production_rate_kwh;
 
-
 -- ========================================================
--- Seed 10 users with 1 generator each
+-- Seed Data - 10 users with different generator setups
 -- ========================================================
--- ========================================================
--- Seed 10 users with 1 generator each
--- ========================================================
-
 DO $$
 DECLARE
     _user_id UUID;
 BEGIN
     FOR i IN 1..10 LOOP
         -- Insert user
-        INSERT INTO users (id, name, balance, energy_stored, created_at)
-        VALUES (gen_random_uuid(), 'User ' || i, 100 + i * 10, 50 + i * 5, NOW())
+        INSERT INTO users (name, balance, energy_stored)
+        VALUES (
+            'User ' || i, 
+            1000.00 + (i * 100), 
+            500.00 + (i * 50)
+        )
         RETURNING id INTO _user_id;
 
-        -- Insert generator for the user
-        INSERT INTO generators (id, type, production_rate, owner_id, status, created_at)
-        VALUES (gen_random_uuid(),
-                CASE WHEN i % 2 = 0 THEN 'Wind' ELSE 'Solar' END,
-                20 + i * 2,
-                _user_id,
-                'active',
-                NOW());
+        -- Insert user generators based on user number pattern
+        IF i <= 3 THEN
+            -- Users 1-3: Wind focused
+            INSERT INTO user_generators (user_id, generator_type, count, total_kwh_rate)
+            VALUES (_user_id, 'Wind', 2, 50.00); -- 2 * 25 kWh
+            
+        ELSIF i <= 6 THEN
+            -- Users 4-6: Solar focused
+            INSERT INTO user_generators (user_id, generator_type, count, total_kwh_rate)
+            VALUES (_user_id, 'Solar', 3, 60.00); -- 3 * 20 kWh
+            
+        ELSE
+            -- Users 7-10: Mixed setups
+            INSERT INTO user_generators (user_id, generator_type, count, total_kwh_rate) VALUES
+                (_user_id, 'Wind', 1, 25.00),
+                (_user_id, 'Solar', 2, 40.00),
+                (_user_id, 'Hydro', 1, 40.00);
+        END IF;
     END LOOP;
 END
 $$;

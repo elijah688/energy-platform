@@ -39,46 +39,6 @@ namespace TransactionServer
             };
 
 
-            app.MapPost("/users", async (HttpContext context) =>
-            {
-                try
-                {
-                    var usersWithGens = await JsonSerializer.DeserializeAsync<List<UserWithGenerators>>(
-                        context.Request.Body, js
-                    );
-
-                    if (usersWithGens is null || usersWithGens.Count == 0)
-                        return Results.BadRequest(new { error = "No users provided." });
-
-                    // Upsert all users first
-                    var users = usersWithGens.Select(uwg => uwg.User).ToList();
-                    UsersDB.UpsertUsers(users);
-
-                    // Flatten all generators and set the correct OwnerId
-                    var allGenerators = usersWithGens
-                        .SelectMany(uwg =>
-                        {
-                            foreach (var g in uwg.Generators)
-                                g.OwnerId = uwg.User.Id;
-                            return uwg.Generators;
-                        })
-                        .ToList();
-
-                    GeneratorsDB.UpsertGenerators(allGenerators);
-
-                    return Results.Json(new
-                    {
-                        message = $"Upserted {users.Count} users and {allGenerators.Count} generators successfully."
-                    });
-                }
-                catch (Exception ex)
-                {
-                    return Results.Problem($"Error upserting users and generators: {ex.Message}");
-                }
-            });
-
-
-
             app.MapPost("/transaction", async (HttpContext context) =>
             {
                 try
@@ -124,22 +84,7 @@ namespace TransactionServer
                 });
 
 
-            app.MapGet("/generators", (int? limit, int? offset) =>
-                {
-                    try
-                    {
-                        int l = limit ?? 100;
-                        int o = offset ?? 0;
 
-                        var usersWithGens = GeneratorsDB.GetGenerators(l, o);
-
-                        return Results.Json(usersWithGens);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.Problem($"Error fetching users with generators: {ex.Message}");
-                    }
-                });
 
 
 
@@ -153,16 +98,63 @@ namespace TransactionServer
                 return Results.Json(transactions);
             });
 
-            app.MapGet("/generators-by-id", (Guid userId, int? limit, int? offset) =>
+
+            app.MapPut("/usergenerators/{userId}", async (Guid userId, HttpContext context) =>
+          {
+              try
+              {
+                  if (userId == Guid.Empty)
+                  {
+                      return Results.BadRequest("Invalid user ID");
+                  }
+
+                  var updates = await context.Request.ReadFromJsonAsync<List<UserGeneratorUpdate>>();
+
+                  if (updates == null || updates.Count == 0)
+                  {
+                      return Results.BadRequest("No generator updates provided");
+                  }
+
+                  // Validate the input
+                  foreach (var update in updates)
+                  {
+                      if (string.IsNullOrWhiteSpace(update.GeneratorType))
+                      {
+                          return Results.BadRequest("Generator type is required");
+                      }
+
+                      if (update.Count < 0)
+                      {
+                          return Results.BadRequest("Generator count cannot be negative");
+                      }
+                  }
+
+                  GeneratorsDB.UpsertUserGenerators(userId, updates);
+                  return Results.Ok(new { message = "User generators updated successfully" });
+              }
+              catch (Exception ex)
+              {
+                  return Results.Problem($"Error updating user generators: {ex.Message}");
+              }
+          });
+
+            app.MapGet("/usergenerators/{userId}", (Guid userId) =>
+            {
+                try
                 {
-                    int l = limit ?? 50;
-                    int o = offset ?? 0;
+                    if (userId == Guid.Empty)
+                    {
+                        return Results.BadRequest("Invalid user ID");
+                    }
 
-                    var generators = GeneratorsDB.GetGeneratorsByUserIds(new List<Guid> { userId }, l, o);
-                    return Results.Json(generators);
-                });
-
-
+                    var userGenerators = GeneratorsDB.GetGenerators(userId);
+                    return Results.Json(userGenerators);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem($"Error fetching user generators: {ex.Message}");
+                }
+            });
 
             app.Run();
         }

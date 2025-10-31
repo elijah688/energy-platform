@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { firstValueFrom, Observable, of } from 'rxjs';
-import { UserGeneratorsMap } from '../model/generator';
+import { UserGenerators } from '../model/generator';
 import { User } from '../model/user';
 
 @Injectable({
@@ -15,18 +15,11 @@ export class Api {
 
 
   /** Stateless fetch: just returns the generators for a user */
-  fetchGeneratorsApi(
+  fetchUserGenerators(
     userId: string,
-    limit: number,
-    offset: number,
   ) {
     return firstValueFrom(
-      this.http.get<UserGeneratorsMap>(`${this.apiUrl}/generators-by-id`, {
-        params: new HttpParams()
-          .set('limit', limit.toString())
-          .set('offset', offset.toString())
-          .set('userId', userId)
-      })
+      this.http.get<UserGenerators>(`${this.apiUrl}/usergenerators/${userId}`)
     );
   }
 
