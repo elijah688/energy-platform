@@ -2,7 +2,7 @@
 // import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 // import { Api } from './api';
 // import { User } from '../model/user';
-// // import { EnergyGenerator, UserGenerators } from '../model/generator';
+// import { GeneratorOutput } from '../model/generator';
 // import { firstValueFrom } from 'rxjs';
 
 // @Injectable({ providedIn: 'root' })
@@ -15,15 +15,15 @@
 //   public generatorTypes = ['Wind', 'Solar', 'Hydro'];
 
 //   // Signals for lists
-//   public activeList = signal<(EnergyGenerator & { userId: string })[]>([]);
-//   public deleteList = signal<(EnergyGenerator & { userId: string })[]>([]);
+//   public activeList = signal<(GeneratorOutput & { userId: string })[]>([]);
+//   public deleteList = signal<(GeneratorOutput & { userId: string })[]>([]);
 
 //   // Pagination state per user
 //   public userPagination = signal<Record<string, { limit: number; offset: number }>>({});
 
 //   /** Initialize form; fetch user + generators if userId */
 //   async initFormWithId(userId?: string) {
-//     let userGenerators: EnergyGenerator[] = [];
+//     let userGenerators: GeneratorOutput[] = [];
 //     if (userId) {
 //       try {
 //         const users = await firstValueFrom(this.api.fetchUsersByIdsApi([userId]));
@@ -41,7 +41,7 @@
 //     this.initForm(this.user(), userGenerators);
 //   }
 
-//   initForm(user?: User, userGenerators: EnergyGenerator[] = []) {
+//   initForm(user?: User, userGenerators: GeneratorOutput[] = []) {
 //     const editing = !!user;
 //     this.user.set(user || undefined);
 
@@ -64,7 +64,7 @@
 //     return this.userForm.get('generators') as FormArray;
 //   }
 
-//   addGenerator(gen?: EnergyGenerator) {
+//   addGenerator(gen?: GeneratorOutput) {
 //     const newId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 //     const fg = this.fb.group({
@@ -76,7 +76,7 @@
 //     this.generatorsArray.push(fg);
 
 //     // Add to active list
-//     const newGen: EnergyGenerator & { userId: string } = {
+//     const newGen: GeneratorOutput & { userId: string } = {
 //       id: gen?.id || newId,
 //       type: gen?.type || 'Wind',
 //       productionRate: gen?.productionRate || 1,
@@ -181,13 +181,13 @@
 //   }
 
 //   // NEW METHOD: Get all generators of a specific type
-//   getGeneratorsByType(type: string): (EnergyGenerator & { userId: string })[] {
+//   getGeneratorsByType(type: string): (GeneratorOutput & { userId: string })[] {
 //     return this.activeList().filter(gen => gen.type === type);
 //   }
 
 //   async fetchGeneratorsForUser(userId: string, limit = 5, offset = 0) {
 //     this.userPagination.update(p => ({ ...p, [userId]: { limit, offset } }));
-//     const gensMap = await this.api.fetchGeneratorsApi(userId, limit, offset);
+//     const gensMap = await this.api.fetchUserGenerators(userId, limit, offset);
 //     const userGens = gensMap[userId] || [];
 //     this.activeList.update(a => [...a, ...userGens.map(g => ({ ...g, userId }))]);
 //     return gensMap;

@@ -5,4 +5,11 @@ namespace Shared.Model
     public record UserGenerators(List<GeneratorOutput> Generators, decimal TotalKwh);
     public record UserGeneratorUpdate(string GeneratorType, int Count);
 
+    public record GeneratorType(
+        string TypeKey,
+        string Label,
+        string Icon,
+        decimal ProductionRateKwh
+    );
+
 }

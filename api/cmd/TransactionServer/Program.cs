@@ -155,6 +155,18 @@ namespace TransactionServer
                     return Results.Problem($"Error fetching user generators: {ex.Message}");
                 }
             });
+            app.MapGet("/generatortypes", () =>
+            {
+                try
+                {
+                    var generatorTypes = GeneratorsDB.GetAllGeneratorTypes();
+                    return Results.Json(generatorTypes);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem($"Error fetching generator types: {ex.Message}");
+                }
+            });
 
             app.Run();
         }
