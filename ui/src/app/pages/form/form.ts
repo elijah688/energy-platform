@@ -1,11 +1,79 @@
-import { Component } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatCardActions, MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+
+import { Component, Input, OnInit } from '@angular/core';
+import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
+import { User } from '../../model/user';
+import { EnergyGenerator } from '../../model/generator';
 
 @Component({
-  selector: 'app-form',
-  imports: [],
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule
+  ],
+  selector: 'app-user-form',
   templateUrl: './form.html',
-  styleUrl: './form.sass',
+  styleUrls: ['./form.sass']
 })
-export class Form {
+export class Form implements OnInit {
+  @Input() user?: User; // undefined = create, otherwise edit
+  @Input() userGenerators: EnergyGenerator[] = [];
 
+  userForm!: FormGroup;
+  generatorTypes = ['Wind', 'Solar'];
+  editing = false;
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit(): void {
+    this.editing = !!this.user;
+
+    this.userForm = this.fb.group({
+      name: [{ value: this.user?.name || '', disabled: this.editing }, Validators.required],
+      balance: [{ value: this.user?.balance || 0, disabled: this.editing }, [Validators.required, Validators.min(0)]],
+      energyStored: [{ value: this.user?.energyStored || 0, disabled: this.editing }, [Validators.required, Validators.min(0)]],
+      generators: this.fb.array([])
+    });
+
+    if (this.editing) {
+      this.userGenerators.forEach(gen => this.addGenerator(gen));
+    } else {
+      this.addGenerator(); // start with one empty generator
+    }
+  }
+
+  get generators(): FormArray {
+    return this.userForm.get('generators') as FormArray;
+  }
+
+  addGenerator(gen?: EnergyGenerator) {
+    this.generators.push(
+      this.fb.group({
+        id: [gen?.id || ''],
+        type: [gen?.type || '', Validators.required],
+        productionRate: [gen?.productionRate || 0, [Validators.required, Validators.min(0)]],
+        status: [gen?.status || 'Active', Validators.required]
+      })
+    );
+  }
+
+  removeGenerator(index: number) {
+    this.generators.removeAt(index);
+  }
+
+  submit() {
+    if (this.userForm.valid) {
+      const payload = this.userForm.getRawValue();
+      console.log('Submit payload', payload);
+      // call API to create/update user + generators
+    }
+  }
 }

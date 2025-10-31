@@ -1,1 +1,72 @@
-<p>form works!</p>
+<form [formGroup]="userForm" (ngSubmit)="submit()" class="user-form">
+  <mat-card>
+    <mat-card-title>{{ editing ? 'Edit User' : 'Create User' }}</mat-card-title>
+    <mat-card-content>
+      <div class="form-group">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Balance</mat-label>
+          <input matInput type="number" formControlName="balance" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Energy Stored</mat-label>
+          <input matInput type="number" formControlName="energyStored" />
+        </mat-form-field>
+      </div>
+
+      <div formArrayName="generators" class="generators">
+        @for (gen of generators.controls; track $index) {
+          <div [formGroupName]="$index" class="generator-group">
+            <mat-card class="generator-card">
+              <mat-form-field appearance="outline">
+                <mat-label>Type</mat-label>
+                <mat-select formControlName="type">
+                  @for (t of generatorTypes; track t) {
+                    <mat-option [value]="t">{{ t }}</mat-option>
+                  } @empty {
+                    <mat-option disabled>No types available</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Production Rate (kWh)</mat-label>
+                <input matInput type="number" formControlName="productionRate" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option value="Active">Active</mat-option>
+                  <mat-option value="Inactive">Inactive</mat-option>
+                  <mat-option value="Maintenance">Maintenance</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (generators.controls.length > 1) {
+                <button mat-mini-button color="warn" type="button" (click)="removeGenerator($index)">
+                  Remove
+                </button>
+              }
+            </mat-card>
+          </div>
+        } @empty {
+          <p>No generators added yet.</p>
+        }
+      </div>
+
+      <button mat-stroked-button color="primary" type="button" (click)="addGenerator()">Add Generator</button>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="accent" type="submit">
+        {{ editing ? 'Save Changes' : 'Create User' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</form>
