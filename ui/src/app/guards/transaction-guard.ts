@@ -1,7 +1,7 @@
 import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { UserService } from '../services/users';
+import { UserService } from '../services/list/users';
 
 export const transactionGuard: CanActivateFn = (route, state) => {
   const energy = inject(UserService);

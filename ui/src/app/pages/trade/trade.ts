@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { UserService } from '../../services/users';
-import { TransactionService } from '../../services/transaction';
+import { UserService } from '../../services/list/users';
+import { TransactionService } from '../../services/list/transaction';
 import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';

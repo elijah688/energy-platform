@@ -1,8 +1,8 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { firstValueFrom, Observable } from 'rxjs';
-import { EnergyTransaction, TransactionResponse, UserTransactionsMap } from '../model/transaction';
+import { EnergyTransaction, TransactionResponse, UserTransactionsMap } from '../../model/transaction';
 
 @Injectable({
   providedIn: 'root'

@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
-import { UserService } from '../../services/users';
-import { TransactionService } from '../../services/transaction';
-import { GeneratorService } from '../../services/generator';
+import { UserService } from '../../services/list/users';
+import { TransactionService } from '../../services/list/transaction';
+import { GeneratorService } from '../../services/list/generator';
 import { MatCard } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';

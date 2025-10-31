@@ -1,9 +1,9 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { Observable, map, tap, catchError, of, firstValueFrom } from 'rxjs';
-import { User } from '../model/user';
-import { UserTransactionsMap } from '../model/transaction';
+import { User } from '../../model/user';
+import { UserTransactionsMap } from '../../model/transaction';
 
 @Injectable({
   providedIn: 'root'
@@ -92,5 +92,23 @@ export class UserService {
   }
 
 
+  fetchUsersByIds(ids: string[]): Observable<User[]> {
+    if (!ids.length) return of([]);
+
+    const params = new URLSearchParams();
+    params.set('ids', ids.join(',')); // backend expects CSV or array
+
+    return this.http.get<User[]>(`${this.apiUrl}/users/by-ids?${params.toString()}`).pipe(
+      map(users => {
+        const selectedIds = new Set(this.selecterUsers().map(u => u.id));
+        return users.filter(u => !selectedIds.has(u.id));
+      }),
+      tap(filtered => this.users.set(filtered)),
+      catchError(err => {
+        console.error('Failed to fetch users by IDs', err);
+        return of([]);
+      })
+    );
+  }
 
 }

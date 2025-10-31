@@ -26,7 +26,7 @@ import { EnergyGenerator } from '../../model/generator';
   styleUrls: ['./form.sass']
 })
 export class Form implements OnInit {
-  @Input() user?: User; // undefined = create, otherwise edit
+  @Input() user?: User;
   @Input() userGenerators: EnergyGenerator[] = [];
 
   userForm!: FormGroup;
