@@ -46,12 +46,29 @@ export class List implements OnInit, AfterViewInit {
     return fullId.substring(0, 8);
   }
   async ngOnInit() {
-    this.userServ.searchTerm.set('')
-    const gts = await this.api.fetchGeneratorTypes()
+    this.userServ.searchTerm.set('');
+
+    // Initialize generator types
+    const gts = await this.api.fetchGeneratorTypes();
     gts.forEach(gt => {
       this.generatorTypes[gt.typeKey] = gt;
     });
-    await this.userServ.fetchUsers();
+
+    // Start periodic user fetch every 2 seconds
+    this.startUserPolling();
+  }
+
+  private startUserPolling() {
+    // Fire immediately, then repeat every 2s
+    const fetch = async () => {
+      await this.userServ.fetchUsers();
+    };
+
+    // Initial fetch
+    fetch();
+
+    // Repeat every 2 seconds
+    setInterval(fetch, 2000);
   }
 
   ngAfterViewInit() {
