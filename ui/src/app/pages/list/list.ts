@@ -28,6 +28,11 @@ export class List implements OnInit, AfterViewInit {
     // All accordions are available here
   }
 
+  async onSearch(event: Event) {
+    const input = (event.target as HTMLInputElement).value.trim();
+    await this.userServ.fetchUsers(this.userServ.limit, 0, input);
+  }
+
   async nextPage() {
     await this.userServ.next();
     this.closeAllAccordions();

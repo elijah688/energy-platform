@@ -6,17 +6,26 @@ namespace Shared.DB
 {
     public class UsersDB : BaseDB
     {
-        public static List<User> GetUsers(int limit = 100, int offset = 0)
+        public static List<User> GetUsers(int limit = 100, int offset = 0, string? name = null)
         {
             var users = new List<User>();
 
             using var conn = GetConnection();
-            using var cmd = new NpgsqlCommand(
-                @"SELECT id, name, balance, energy_stored, created_at, updated_at
-                  FROM users
-                  ORDER BY created_at, id
-                  LIMIT @limit OFFSET @offset", conn
-            );
+
+            var sql = @"
+                SELECT id, name, balance, energy_stored, created_at, updated_at
+                FROM users
+            ";
+
+            if (!string.IsNullOrEmpty(name))
+                sql += " WHERE name ILIKE @name";
+
+            sql += " ORDER BY created_at, id LIMIT @limit OFFSET @offset";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+
+            if (!string.IsNullOrEmpty(name))
+                cmd.Parameters.AddWithValue("name", $"%{name}%");
 
             cmd.Parameters.AddWithValue("limit", limit);
             cmd.Parameters.AddWithValue("offset", offset);
@@ -37,6 +46,7 @@ namespace Shared.DB
 
             return users;
         }
+
 
         public static void UpsertUsers(List<User> users)
         {

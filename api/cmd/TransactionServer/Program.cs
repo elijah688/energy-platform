@@ -106,14 +106,14 @@ namespace TransactionServer
             });
 
 
-            app.MapGet("/users", (int? limit, int? offset) =>
+            app.MapGet("/users", (int? limit, int? offset, string? name) =>
                 {
                     try
                     {
                         int l = limit ?? 100;
                         int o = offset ?? 0;
 
-                        var usersWithGens = UsersDB.GetUsers(l, o);
+                        var usersWithGens = UsersDB.GetUsers(l, o, name);
 
                         return Results.Json(usersWithGens);
                     }

@@ -1,5 +1,10 @@
 <!-- Top users grid -->
 <div class="users-grid">
+  <!-- Search bar -->
+  <div class="search-bar" style="margin-bottom: 1rem;">
+    <input type="text" matInput placeholder="Search users by name" (input)="onSearch($event)" />
+  </div>
+
   @for (user of userServ.users(); track $index) {
   <mat-card class="user-card">
     <!-- User Info -->

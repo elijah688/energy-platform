@@ -15,7 +15,7 @@ export class UserService {
   public transactions = signal<Record<string, UserTransactionsMap[]>>({});
   public generators = signal<Record<string, Generator[]>>({});
 
-  private userAddedPage = new Map<string, number>(); // userId -> page number
+  private userAddedPage = new Map<string, number>();
   private http = inject(HttpClient);
   private apiUrl = `http://localhost:${environment.backendPort}`;
 
@@ -23,7 +23,11 @@ export class UserService {
   public offset = 0;
   public currentPage = 0;
 
-  fetchOfUsers(limit: number = this.limit, offset: number = this.offset): Observable<User[]> {
+  fetchOfUsers(
+    limit: number = this.limit,
+    offset: number = this.offset,
+    name?: string
+  ): Observable<User[]> {
     this.limit = limit;
     this.offset = offset;
     this.currentPage = Math.floor(offset / limit);
@@ -31,7 +35,9 @@ export class UserService {
     const params = new URLSearchParams();
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
-
+    if (name) {
+      params.set('name', name);
+    }
     return this.http.get<User[]>(`${this.apiUrl}/users?${params.toString()}`).pipe(
       map(users => {
         const selectedIds = new Set(this.selecterUsers().map(u => u.id));
@@ -44,8 +50,12 @@ export class UserService {
       })
     );
   }
-  async fetchUsers(limit: number = this.limit, offset: number = this.offset) {
-    await firstValueFrom(this.fetchOfUsers(limit, offset));
+  async fetchUsers(
+    limit: number = this.limit,
+    offset: number = this.offset,
+    name?: string
+  ) {
+    await firstValueFrom(this.fetchOfUsers(limit, offset, name));
   }
 
 
