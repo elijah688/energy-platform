@@ -5,39 +5,6 @@ namespace Shared.DB
 {
     public class GeneratorsDB : BaseDB
     {
-        public static void UpsertUserGenerators(Guid userId, List<UserGeneratorUpdate> updates)
-        {
-            if (updates == null || updates.Count == 0)
-                return;
-
-            using var conn = GetConnection();
-            using var tran = conn.BeginTransaction();
-
-            // Prepare arrays for batch processing
-            var generatorTypes = updates.Select(u => u.GeneratorType).ToArray();
-            var counts = updates.Select(u => u.Count).ToArray();
-
-            // Create userId array with same length as updates
-            var userIds = Enumerable.Repeat(userId, updates.Count).ToArray();
-
-            // Single batch insert/update - database trigger handles total_kwh_rate
-            using var cmd = new NpgsqlCommand { Connection = conn, Transaction = tran };
-            cmd.CommandText = @"
-                INSERT INTO user_generators (user_id, generator_type, count, updated_at)
-                SELECT u.user_id, u.generator_type, u.count, NOW()
-                FROM UNNEST(@userIds, @generatorTypes, @counts) 
-                AS u(user_id UUID, generator_type TEXT, count INTEGER)
-                ON CONFLICT (user_id, generator_type) DO UPDATE
-                SET count = EXCLUDED.count,
-                    updated_at = NOW()";
-
-            cmd.Parameters.AddWithValue("userIds", userIds);
-            cmd.Parameters.AddWithValue("generatorTypes", generatorTypes);
-            cmd.Parameters.AddWithValue("counts", counts);
-
-            cmd.ExecuteNonQuery();
-            tran.Commit();
-        }
 
         public static UserGenerators GetGenerators(Guid userId)
         {

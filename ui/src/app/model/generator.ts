@@ -1,9 +1,3 @@
-// Shared Model Interfaces
-export interface GeneratorInput {
-  type: string;
-  count: number;
-}
-
 export interface GeneratorOutput {
   type: string;
   count: number;
@@ -15,7 +9,10 @@ export interface UserGenerators {
   totalKwh: number;
 }
 
-export interface UserGeneratorUpdate {
-  generatorType: string;
-  count: number;
+
+export interface GeneratorType {
+  typeKey: string;
+  label: string;
+  icon: string;
+  productionRateKwh: number;
 }

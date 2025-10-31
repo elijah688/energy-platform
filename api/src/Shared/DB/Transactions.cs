@@ -8,7 +8,7 @@ namespace Shared.DB
     {
         public static void ExecuteEnergyTransaction(EnergyTransaction tx)
         {
-            var users = UsersDB.GetUsersByIds(new List<Guid> { tx.BuyerId, tx.SellerId });
+            var users = UsersDB.GetUsersByIds([tx.BuyerId, tx.SellerId]);
             var buyer = users.FirstOrDefault(u => u.Id == tx.BuyerId) ?? throw new Exception("Buyer not found.");
             var seller = users.FirstOrDefault(u => u.Id == tx.SellerId) ?? throw new Exception("Seller not found.");
 

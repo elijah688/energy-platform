@@ -99,44 +99,6 @@ namespace TransactionServer
             });
 
 
-            app.MapPut("/usergenerators/{userId}", async (Guid userId, HttpContext context) =>
-          {
-              try
-              {
-                  if (userId == Guid.Empty)
-                  {
-                      return Results.BadRequest("Invalid user ID");
-                  }
-
-                  var updates = await context.Request.ReadFromJsonAsync<List<UserGeneratorUpdate>>();
-
-                  if (updates == null || updates.Count == 0)
-                  {
-                      return Results.BadRequest("No generator updates provided");
-                  }
-
-                  // Validate the input
-                  foreach (var update in updates)
-                  {
-                      if (string.IsNullOrWhiteSpace(update.GeneratorType))
-                      {
-                          return Results.BadRequest("Generator type is required");
-                      }
-
-                      if (update.Count < 0)
-                      {
-                          return Results.BadRequest("Generator count cannot be negative");
-                      }
-                  }
-
-                  GeneratorsDB.UpsertUserGenerators(userId, updates);
-                  return Results.Ok(new { message = "User generators updated successfully" });
-              }
-              catch (Exception ex)
-              {
-                  return Results.Problem($"Error updating user generators: {ex.Message}");
-              }
-          });
 
             app.MapGet("/usergenerators/{userId}", (Guid userId) =>
             {
@@ -168,7 +130,36 @@ namespace TransactionServer
                 }
             });
 
+            app.MapPost("/users/upsert", (UserWithGenerators data) =>
+                {
+
+                   
+                    if (data == null || data.User == null)
+                        return Results.BadRequest(new { success = false, message = "Invalid user data" });
+
+                    try
+                    {
+                        UserGeneratorManagement.UpsertUserWithGenerators(data);
+
+                        return Results.Ok(new 
+                        { 
+                            success = true, 
+                            userId = data.User.Id, 
+                            totalGenerators = data.Generators?.Generators.Count ?? 0,
+                            totalKwh = data.Generators?.TotalKwh ?? 0
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        return Results.Problem(ex.Message);
+                    }
+                });
+
+
             app.Run();
         }
+
+        
     }
 }

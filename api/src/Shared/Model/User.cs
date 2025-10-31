@@ -1,14 +1,26 @@
+using System.Text.Json.Serialization;
+
 namespace Shared.Model
 {
 
-    public class User
+    public record User(
+       [property: JsonPropertyName("id")] Guid Id,
+       [property: JsonPropertyName("name")] string Name,
+       [property: JsonPropertyName("balance")] decimal Balance,
+       [property: JsonPropertyName("energyStored")] decimal EnergyStored,
+       [property: JsonPropertyName("createdAt")] DateTime CreatedAt,
+       [property: JsonPropertyName("updatedAt")] DateTime UpdatedAt
+   )
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = "";
-        public decimal Balance { get; set; } = 0;
-        public decimal EnergyStored { get; set; } = 0;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public User() : this(
+            Guid.NewGuid(),
+            string.Empty,
+            0,
+            0,
+            DateTime.UtcNow,
+            DateTime.UtcNow
+        )
+        { }
     }
 
     public class UserEnergyUpdate

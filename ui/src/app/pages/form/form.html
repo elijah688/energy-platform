@@ -2,95 +2,78 @@
   <mat-card class="form-card">
     <mat-card-header class="form-header">
       <mat-card-title class="form-title">
-        {{ isEditMode ? 'Edit User Generators' : 'Create New User' }}
+        {{ isEditMode() ? 'Edit User Generators' : 'Create New User' }}
       </mat-card-title>
       <mat-card-subtitle class="form-subtitle">
-        {{ isEditMode ? 'Manage your energy generators' : 'Set up user profile and energy generators' }}
+        {{ isEditMode() ? 'Manage your energy generators' : 'Set up user profile and energy generators' }}
       </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="energy-form">
+
         <!-- User Info Section -->
         <section class="form-section">
           <h2 class="section-title">User Information</h2>
-
           <mat-form-field appearance="outline" class="form-field-full">
             <mat-label>User Name</mat-label>
-            <input matInput id="name" type="text" formControlName="name" placeholder="Enter user name">
-            @if (hasError('name', 'required')) {
-            <mat-error>User name is required</mat-error>
-            }
-            @if (hasError('name', 'minlength')) {
-            <mat-error>User name must be at least 2 characters</mat-error>
-            }
+            <input matInput formControlName="name" placeholder="Enter user name" />
+            <mat-error *ngIf="userForm.get('name')?.hasError('required') && userForm.get('name')?.touched">
+              User name is required
+            </mat-error>
+            <mat-error *ngIf="userForm.get('name')?.hasError('minlength') && userForm.get('name')?.touched">
+              User name must be at least 2 characters
+            </mat-error>
           </mat-form-field>
         </section>
 
         <!-- Generator Controls Section -->
         <section class="form-section">
           <h2 class="section-title">Energy Generators</h2>
-
           <p class="section-description">
             Manage your energy production sources. Use +/- buttons to adjust generator counts.
           </p>
 
           <div class="generator-controls">
-            @for (type of generatorTypes; track type) {
-            <mat-card class="generator-control-card" [class.selected]="selectedType === type.key"
-              (click)="selectType(type.key)">
+            <mat-card *ngFor="let type of generatorTypes()"
+                      class="generator-control-card"
+                      [class.selected]="selectedType() === type.typeKey"
+                      (click)="selectType(type.typeKey)">
               <mat-card-header class="generator-type-header">
                 <mat-icon matCardAvatar>{{ type.icon }}</mat-icon>
-                <mat-card-title class="generator-name">{{ type.label }}</mat-card-title>
-                <mat-card-subtitle class="generator-rate">{{ type.productionRate }} kWh each</mat-card-subtitle>
+                <mat-card-title>{{ type.label }}</mat-card-title>
+                <mat-card-subtitle>{{ type.productionRateKwh }} kWh each</mat-card-subtitle>
               </mat-card-header>
 
               <mat-card-content>
                 <div class="generator-counter">
-                  <button mat-icon-button type="button" class="counter-btn decrement"
-                    (click)="decrementGenerator(type.key); $event.stopPropagation()"
-                    [disabled]="getGeneratorCount(type.key) === 0">
+                  <button mat-icon-button type="button"
+                          (click)="decrement(type.typeKey); $event.stopPropagation()"
+                          [disabled]="getGeneratorCount(type.typeKey) === 0">
                     <mat-icon>remove</mat-icon>
                   </button>
 
                   <div class="counter-display">
-                    <span class="counter-value">{{ getGeneratorCount(type.key) }}</span>
+                    <span class="counter-value">{{ getGeneratorCount(type.typeKey) }}</span>
                     <span class="counter-label">generators</span>
                   </div>
 
-                  <button mat-icon-button type="button" class="counter-btn increment"
-                    (click)="incrementGenerator(type.key); $event.stopPropagation()">
+                  <button mat-icon-button type="button"
+                          (click)="increment(type.typeKey); $event.stopPropagation()">
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
 
                 <div class="generator-total">
-                  Total: {{ getTotalProduction(type.key) }} kWh
+                  Total: {{ getTotalProduction(type.typeKey) }} kWh
                 </div>
               </mat-card-content>
             </mat-card>
-            }
           </div>
-
-          <!-- Selected Generator Status -->
-          @if (selectedType) {
-          <div class="status-section">
-            <!-- <h3 class="status-title">Status for {{ getSelectedTypeLabel() }} Generators</h3> -->
-            <mat-form-field appearance="outline" class="form-field-full">
-              <mat-label>Generator Status</mat-label>
-              <mat-select formControlName="generatorStatus" (selectionChange)="updateAllGeneratorStatus()">
-                <mat-option value="Active">Active</mat-option>
-                <mat-option value="Inactive">Inactive</mat-option>
-                <mat-option value="Maintenance">Maintenance</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-          }
         </section>
 
         <!-- Summary Section -->
-        @if (getTotalGenerators() > 0) {
-        <section class="form-section">
+        <section class="form-section" *ngIf="totalGenerators() > 0">
           <h2 class="section-title">Generator Summary</h2>
 
           <mat-card appearance="outlined" class="summary-card">
@@ -98,40 +81,38 @@
               <div class="total-summary">
                 <div class="total-item">
                   <span class="total-label">Total Generators:</span>
-                  <span class="total-value">{{ getTotalGenerators() }}</span>
+                  <span class="total-value">{{ totalGenerators() }}</span>
                 </div>
                 <div class="total-item">
                   <span class="total-label">Total Production:</span>
-                  <span class="total-value">{{ getOverallTotalProduction() }} kWh</span>
+                  <span class="total-value">{{ overallProduction() }} kWh</span>
                 </div>
               </div>
 
               <mat-divider class="summary-divider"></mat-divider>
 
               <div class="type-breakdown">
-                @for (type of generatorTypes; track type) {
-                <div class="breakdown-item">
+                <div class="breakdown-item" *ngFor="let type of generatorTypes()">
                   <mat-icon class="breakdown-icon">{{ type.icon }}</mat-icon>
                   <span class="breakdown-type">{{ type.label }}:</span>
-                  <span class="breakdown-count">{{ getGeneratorCount(type.key) }}</span>
-                  <span class="breakdown-production">({{ getTotalProduction(type.key) }} kWh)</span>
+                  <span class="breakdown-count">{{ getGeneratorCount(type.typeKey) }}</span>
+                  <span class="breakdown-production">({{ getTotalProduction(type.typeKey) }} kWh)</span>
                 </div>
-                }
               </div>
             </mat-card-content>
           </mat-card>
         </section>
-        }
 
         <!-- Form Actions -->
         <section class="form-actions">
-          <button mat-stroked-button type="button" color="basic">
+          <button mat-stroked-button type="button">
             Cancel
           </button>
           <button mat-raised-button type="submit" color="primary" [disabled]="userForm.invalid">
-            {{ isEditMode ? 'Update User' : 'Create User' }}
+            {{ isEditMode() ? 'Update User' : 'Create User' }}
           </button>
         </section>
+
       </form>
     </mat-card-content>
   </mat-card>
