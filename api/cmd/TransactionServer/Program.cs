@@ -133,7 +133,7 @@ namespace TransactionServer
             app.MapPost("/users/upsert", (UserWithGenerators data) =>
                 {
 
-                   
+
                     if (data == null || data.User == null)
                         return Results.BadRequest(new { success = false, message = "Invalid user data" });
 
@@ -141,10 +141,10 @@ namespace TransactionServer
                     {
                         UserGeneratorManagement.UpsertUserWithGenerators(data);
 
-                        return Results.Ok(new 
-                        { 
-                            success = true, 
-                            userId = data.User.Id, 
+                        return Results.Ok(new
+                        {
+                            success = true,
+                            userId = data.User.Id,
                             totalGenerators = data.Generators?.Generators.Count ?? 0,
                             totalKwh = data.Generators?.TotalKwh ?? 0
                         });
@@ -157,9 +157,25 @@ namespace TransactionServer
                 });
 
 
+            app.MapGet("/usergenerators/{userId:guid}", (Guid userId) =>
+            {
+                try
+                {
+                    var userWithGenerators = UserGeneratorManagement.GetUserWithGenerators(userId);
+                    if (userWithGenerators == null)
+                        return Results.NotFound(new { success = false, message = "User not found" });
+
+                    return Results.Ok(userWithGenerators);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(ex.Message);
+                }
+            });
+
             app.Run();
         }
 
-        
+
     }
 }

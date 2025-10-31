@@ -96,7 +96,7 @@ export class List implements OnInit, AfterViewInit {
   // Helper methods for template
   getGeneratorsForUser(userId: string): GeneratorOutput[] {
     const userGens = this.genService.userGenerators()[userId];
-    return userGens?.generators || [];
+    return userGens?.generators.filter(x=>x.count>0) || [];
   }
 
   getTotalGeneratorsForUser(userId: string): number {

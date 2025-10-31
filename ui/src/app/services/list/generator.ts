@@ -1,6 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { UserGenerators } from '../../model/generator';
 import { Api } from '../api';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,12 +13,13 @@ export class GeneratorService {
 
   async fetchGeneratorsForUser(userId: string): Promise<UserGenerators> {
     try {
-      const generators = await this.api.fetchUserGenerators(userId);
+      const { user: { id }, generators } = await firstValueFrom(this.api.fetchUserWithGenerators(userId));
 
       this.userGenerators.update(current => ({
         ...current,
-        [userId]: generators
+        [id]: generators
       }));
+
 
       return generators;
     } catch (error) {

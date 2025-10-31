@@ -13,18 +13,10 @@ export class Api {
   private apiUrl = `http://localhost:${environment.backendPort}`;
 
   /** Fetch generators for a user */
-  fetchUserGenerators(userId: string) {
-    return firstValueFrom(
-      this.http.get<UserGenerators>(`${this.apiUrl}/usergenerators/${userId}`)
-    );
-  }
 
-  /** Fetch users by IDs */
-  fetchUsersByIdsApi(ids: string[]): Observable<User[]> {
-    if (!ids.length) return of([]);
-    const params = new URLSearchParams();
-    params.set('ids', ids.join(','));
-    return this.http.get<User[]>(`${this.apiUrl}/users/by-ids?${params.toString()}`);
+
+  fetchUserWithGenerators(userId: string) {
+    return this.http.get<UserWithGenerators>(`${this.apiUrl}/usergenerators/${userId}`)
   }
 
   /** Fetch all generator types from backend */

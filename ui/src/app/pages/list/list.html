@@ -11,6 +11,11 @@
   @for (user of userServ.users(); track $index) {
   <mat-card class="user-card">
     <!-- User Info -->
+
+    <button mat-icon-button class="user-edit-btn" [routerLink]="['/form', user.id]">
+      <mat-icon>settings</mat-icon>
+    </button>
+
     <div class="user-info">
       <div><strong>{{ user.name }}</strong></div>
       <div>Balance: ${{ user.balance }}</div>
@@ -97,8 +102,7 @@
   <button mat-raised-button (click)="prevPage()" [disabled]="userServ.offset === 0">
     ← Previous
   </button>
-  <button mat-raised-button (click)="nextPage()"
-    [disabled]="userServ.users().length === 0">
+  <button mat-raised-button (click)="nextPage()" [disabled]="userServ.users().length === 0">
     Next →
   </button>
 </div>

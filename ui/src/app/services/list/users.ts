@@ -93,19 +93,6 @@ export class UserService {
     this.userAddedPage.delete(user.id);
   }
 
-  fetchUsersByIds(ids: string[]): Observable<User[]> {
-    return this.api.fetchUsersByIdsApi(ids).pipe(
-      map(users => {
-        const selectedIds = new Set(this.selecterUsers().map(u => u.id));
-        return users.filter(u => !selectedIds.has(u.id));
-      }),
-      tap(filtered => this.users.set(filtered)),
-      catchError(err => {
-        console.error('Failed to fetch users by IDs', err);
-        return of([]);
-      })
-    );
-  }
 
 
 }

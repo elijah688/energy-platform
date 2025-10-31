@@ -2,7 +2,7 @@ import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -16,7 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { User } from '../../model/user';
 import { GeneratorOutput, GeneratorType } from '../../model/generator';
 import { Api } from '../../services/api';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable, of } from 'rxjs';
 import { UserWithGenerators } from '../../model/userGeneratorManagement';
 
 @Component({
@@ -49,6 +49,7 @@ export class Form implements OnInit {
   generatorCounts = signal<Record<string, number>>({});
   generatorTypes = signal<GeneratorType[]>([]);
   selectedType = signal<string | null>(null);
+  private route = inject(ActivatedRoute);
 
   totalGenerators = computed(() => Object.values(this.generatorCounts()).reduce((a, b) => a + b, 0));
   overallProduction = computed(() =>
@@ -57,31 +58,41 @@ export class Form implements OnInit {
   isEditMode = computed(() => !!this.user());
 
   async ngOnInit() {
-    await this.init();
+    const userId = this.route.snapshot.paramMap.get('id');
+    await this.init(userId || undefined);
   }
 
   selectType(typeKey: string) {
     this.selectedType.set(typeKey);
   }
-
   async init(userId?: string) {
     const typesPromise = this.api.fetchGeneratorTypes();
-    const userPromise = userId ? firstValueFrom(this.api.fetchUsersByIdsApi([userId])) : Promise.resolve([]);
-    const [types, users] = await Promise.all([typesPromise, userPromise]);
+    const userObs: Observable<UserWithGenerators> | null = userId ? this.api.fetchUserWithGenerators(userId) : null;
 
+    const types = await typesPromise;
     this.generatorTypes.set(types);
-    this.user.set(users[0] || null);
 
-    if (this.user()) {
-      const userGens = await this.api.fetchUserGenerators(this.user()!.id);
-      const counts: Record<string, number> = {};
-      userGens.generators.forEach(g => counts[g.type] = g.count);
-      this.generatorCounts.set(counts);
+    if (userObs) {
 
-      // Patch form values
-      this.userForm.patchValue({ name: this.user()?.name });
+      const userWithGens = await firstValueFrom(userObs); // resolve observable
+
+      if (userWithGens && userWithGens.generators?.generators) {
+        const counts: Record<string, number> = {};
+        userWithGens.generators.generators.forEach(g => counts[g.type] = g.count);
+        this.generatorCounts.set(counts);
+
+        this.user.set(userWithGens.user);
+        this.userForm.patchValue({ name: userWithGens.user.name });
+      } else {
+        console.log(JSON.stringify(userWithGens, null, 4))
+        console.warn('User generators missing', userWithGens);
+      }
+
+
     }
   }
+
+
 
   increment(type: string) { this.updateCount(type, 1); }
   decrement(type: string) { this.updateCount(type, -1); }
@@ -122,8 +133,8 @@ export class Form implements OnInit {
       }));
 
     const payload: UserWithGenerators = {
-      User: user,
-      Generators: {
+      user: user,
+      generators: {
         generators: generatorsList,
         totalKwh: generatorsList.reduce((sum, g) => sum + g.totalKwhPerType, 0)
       }

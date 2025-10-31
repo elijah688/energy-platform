@@ -67,5 +67,58 @@ namespace Shared.DB
                 throw;
             }
         }
+
+
+        public static UserWithGenerators? GetUserWithGenerators(Guid userId)
+        {
+            using var conn = GetConnection();
+
+
+            var generators = new List<GeneratorOutput>();
+            User? user = null;
+
+            var sql = @"
+                SELECT 
+                    u.id, u.name, u.balance, u.energy_stored, u.created_at, u.updated_at,
+                    ug.generator_type, ug.count, ug.total_kwh_rate
+                FROM users u
+                LEFT JOIN user_generators ug ON u.id = ug.user_id
+                WHERE u.id = @userId";
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("userId", userId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                user = new User(
+                    reader.GetGuid(reader.GetOrdinal("id")),
+                    reader.GetString(reader.GetOrdinal("name")),
+                    reader.GetDecimal(reader.GetOrdinal("balance")),
+                    reader.GetDecimal(reader.GetOrdinal("energy_stored")),
+                    reader.GetDateTime(reader.GetOrdinal("created_at")),
+                    reader.GetDateTime(reader.GetOrdinal("updated_at"))
+                );
+
+                var genType = reader["generator_type"];
+                if (genType != DBNull.Value)
+                {
+                    generators.Add(new GeneratorOutput(
+                        reader.GetString(reader.GetOrdinal("generator_type")),
+                        reader.GetInt32(reader.GetOrdinal("count")),
+                        reader.GetDecimal(reader.GetOrdinal("total_kwh_rate"))
+                    ));
+                }
+            }
+
+            if (user == null) return null;
+
+            var totalKwh = generators.Sum(g => g.TotalKwhPerType);
+            return new UserWithGenerators(user, new UserGenerators(generators, totalKwh));
+        }
     }
+
 }
+
+
+
