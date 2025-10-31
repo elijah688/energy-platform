@@ -1,0 +1,301 @@
+.form-container
+  padding: 20px
+  max-width: 800px
+  margin: 0 auto
+
+.form-card
+  background: white
+  border-radius: 8px
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1)
+  padding: 24px
+
+.form-header
+  margin-bottom: 32px
+  text-align: center
+
+.form-title
+  font-size: 24px
+  font-weight: 600
+  margin: 0 0 8px 0
+  color: #333
+
+.form-subtitle
+  font-size: 14px
+  color: #666
+  margin: 0
+
+.form-section
+  margin-bottom: 32px
+  padding: 20px
+  border: 1px solid #e0e0e0
+  border-radius: 8px
+
+.section-title
+  font-size: 18px
+  font-weight: 600
+  margin: 0 0 16px 0
+  color: #333
+
+.section-description
+  font-size: 14px
+  color: #666
+  margin: 0 0 20px 0
+
+/* Generator Controls */
+.generator-controls
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+.generator-control-card
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 20px
+  border: 2px solid #e0e0e0
+  border-radius: 8px
+  cursor: pointer
+  transition: all 0.2s ease
+
+  &:hover
+    border-color: #90caf9
+    background: #f8fdff
+
+  &.selected
+    border-color: #1976d2
+    background: #e3f2fd
+
+.generator-type-header
+  display: flex
+  flex-direction: column
+  gap: 4px
+  flex: 1
+
+.generator-icon
+  font-size: 24px
+  margin-bottom: 4px
+
+.generator-name
+  font-weight: 600
+  color: #333
+
+.generator-rate
+  font-size: 12px
+  color: #666
+
+/* Counter Controls */
+.generator-counter
+  display: flex
+  align-items: center
+  gap: 12px
+  margin: 0 20px
+
+.counter-btn
+  width: 40px
+  height: 40px
+  border: 2px solid #1976d2
+  background: white
+  color: #1976d2
+  border-radius: 50%
+  font-size: 18px
+  font-weight: bold
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: all 0.2s ease
+
+  &:hover:not(:disabled)
+    background: #1976d2
+    color: white
+
+  &:disabled
+    border-color: #ccc
+    color: #ccc
+    cursor: not-allowed
+
+  &.decrement
+    border-color: #f44336
+    color: #f44336
+
+    &:hover:not(:disabled)
+      background: #f44336
+      color: white
+
+.counter-display
+  display: flex
+  flex-direction: column
+  align-items: center
+  min-width: 80px
+
+.counter-value
+  font-size: 24px
+  font-weight: 600
+  color: #1976d2
+
+.counter-label
+  font-size: 12px
+  color: #666
+  text-align: center
+
+.generator-total
+  font-weight: 600
+  color: #333
+  min-width: 120px
+  text-align: right
+
+/* Status Section */
+.status-section
+  margin-top: 24px
+  padding-top: 20px
+  border-top: 1px solid #e0e0e0
+
+.status-title
+  font-size: 16px
+  font-weight: 600
+  margin: 0 0 16px 0
+  color: #333
+
+/* Summary Section */
+.total-summary
+  display: flex
+  gap: 20px
+  margin-bottom: 20px
+
+.total-item
+  display: flex
+  flex-direction: column
+  align-items: center
+  padding: 16px
+  background: #f8f9fa
+  border-radius: 8px
+  flex: 1
+
+.total-label
+  font-size: 14px
+  color: #666
+  margin-bottom: 4px
+
+.total-value
+  font-size: 20px
+  font-weight: 600
+  color: #1976d2
+
+.type-breakdown
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.breakdown-item
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 12px 16px
+  border-radius: 6px
+  background: #f8f9fa
+
+  &.has-generators
+    background: #e8f5e8
+    border-left: 4px solid #4caf50
+
+.breakdown-icon
+  font-size: 20px
+
+.breakdown-type
+  font-weight: 500
+  color: #495057
+  flex: 1
+
+.breakdown-count
+  font-weight: 600
+  color: #1976d2
+  min-width: 30px
+  text-align: center
+
+.breakdown-production
+  font-size: 12px
+  color: #666
+  min-width: 80px
+  text-align: right
+
+/* Form Controls */
+.form-group
+  margin-bottom: 20px
+
+.form-label
+  display: block
+  margin-bottom: 6px
+  font-weight: 500
+  color: #333
+
+.form-input,
+.form-select
+  width: 100%
+  padding: 10px 12px
+  border: 1px solid #ddd
+  border-radius: 4px
+  font-size: 14px
+  transition: border-color 0.2s
+
+  &:focus
+    outline: none
+    border-color: #1976d2
+
+  &.error
+    border-color: #d32f2f
+
+.error-message
+  color: #d32f2f
+  font-size: 12px
+  margin-top: 4px
+
+/* Form Actions */
+.form-actions
+  display: flex
+  justify-content: flex-end
+  gap: 12px
+  margin-top: 32px
+
+.btn-cancel,
+.btn-submit
+  padding: 12px 24px
+  border: none
+  border-radius: 4px
+  font-size: 14px
+  cursor: pointer
+  transition: background-color 0.2s
+
+.btn-cancel
+  background: #f5f5f5
+  color: #333
+  border: 1px solid #ddd
+
+  &:hover
+    background: #e0e0e0
+
+.btn-submit
+  background: #1976d2
+  color: white
+
+  &:hover:not(:disabled)
+    background: #1565c0
+
+  &:disabled
+    background: #ccc
+    cursor: not-allowed
+
+/* Responsive */
+@media (max-width: 768px)
+  .generator-control-card
+    flex-direction: column
+    gap: 16px
+    text-align: center
+
+  .generator-counter
+    margin: 0
+
+  .total-summary
+    flex-direction: column
+
+  .form-actions
+    flex-direction: column

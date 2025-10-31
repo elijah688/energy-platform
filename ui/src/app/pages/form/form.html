@@ -1,72 +1,154 @@
-<form [formGroup]="userForm" (ngSubmit)="submit()" class="user-form">
-  <mat-card>
-    <mat-card-title>{{ editing ? 'Edit User' : 'Create User' }}</mat-card-title>
-    <mat-card-content>
-      <div class="form-group">
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" />
-        </mat-form-field>
+<!-- generator-form.component.html -->
+<div class="form-container">
+  <div class="form-card">
+    <header class="form-header">
+      <h1 class="form-title">
+        {{ isEditMode ? 'Edit User Generators' : 'Create New User' }}
+      </h1>
+      <p class="form-subtitle">
+        {{ isEditMode ? 'Manage your energy generators' : 'Set up user profile and energy generators' }}
+      </p>
+    </header>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Balance</mat-label>
-          <input matInput type="number" formControlName="balance" />
-        </mat-form-field>
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="energy-form">
+      <!-- User Info Section -->
+      <section class="form-section">
+        <h2 class="section-title">User Information</h2>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Energy Stored</mat-label>
-          <input matInput type="number" formControlName="energyStored" />
-        </mat-form-field>
-      </div>
-
-      <div formArrayName="generators" class="generators">
-        @for (gen of generators.controls; track $index) {
-          <div [formGroupName]="$index" class="generator-group">
-            <mat-card class="generator-card">
-              <mat-form-field appearance="outline">
-                <mat-label>Type</mat-label>
-                <mat-select formControlName="type">
-                  @for (t of generatorTypes; track t) {
-                    <mat-option [value]="t">{{ t }}</mat-option>
-                  } @empty {
-                    <mat-option disabled>No types available</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Production Rate (kWh)</mat-label>
-                <input matInput type="number" formControlName="productionRate" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  <mat-option value="Active">Active</mat-option>
-                  <mat-option value="Inactive">Inactive</mat-option>
-                  <mat-option value="Maintenance">Maintenance</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              @if (generators.controls.length > 1) {
-                <button mat-mini-button color="warn" type="button" (click)="removeGenerator($index)">
-                  Remove
-                </button>
-              }
-            </mat-card>
+        <div class="form-group">
+          <label for="name" class="form-label">User Name</label>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="Enter user name"
+            class="form-input"
+            [class.error]="hasError('name', 'required')"
+          >
+          <div class="error-message" *ngIf="hasError('name', 'required')">
+            User name is required
           </div>
-        } @empty {
-          <p>No generators added yet.</p>
-        }
-      </div>
+          <div class="error-message" *ngIf="hasError('name', 'minlength')">
+            User name must be at least 2 characters
+          </div>
+        </div>
+      </section>
 
-      <button mat-stroked-button color="primary" type="button" (click)="addGenerator()">Add Generator</button>
-    </mat-card-content>
+      <!-- Generator Controls Section -->
+      <section class="form-section">
+        <h2 class="section-title">Energy Generators</h2>
 
-    <mat-card-actions>
-      <button mat-raised-button color="accent" type="submit">
-        {{ editing ? 'Save Changes' : 'Create User' }}
-      </button>
-    </mat-card-actions>
-  </mat-card>
-</form>
+        <p class="section-description">
+          Manage your energy production sources. Use +/- buttons to adjust generator counts.
+        </p>
+
+        <div class="generator-controls">
+          <div
+            *ngFor="let type of availableTypes"
+            class="generator-control-card"
+            [class.selected]="selectedType === type[0]"
+            (click)="selectType(type[0])"
+          >
+            <div class="generator-type-header">
+              <span class="generator-icon">{{ type[1].icon }}</span>
+              <span class="generator-name">{{ type[1].label }}</span>
+              <span class="generator-rate">{{ type[1].productionRate }} kWh each</span>
+            </div>
+
+            <div class="generator-counter">
+              <button
+                type="button"
+                class="counter-btn decrement"
+                (click)="decrementGenerator(type[0]); $event.stopPropagation()"
+                [disabled]="getGeneratorCount(type[0]) === 0"
+              >
+                -
+              </button>
+
+              <div class="counter-display">
+                <span class="counter-value">{{ getGeneratorCount(type[0]) }}</span>
+                <span class="counter-label">generators</span>
+              </div>
+
+              <button
+                type="button"
+                class="counter-btn increment"
+                (click)="incrementGenerator(type[0]); $event.stopPropagation()"
+              >
+                +
+              </button>
+            </div>
+
+            <div class="generator-total">
+              Total: {{ getTotalProduction(type[0]) }} kWh
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Generator Status (only show when a type is selected) -->
+        <div class="status-section" *ngIf="selectedType">
+          <h3 class="status-title">Status for {{ getSelectedTypeLabel() }} Generators</h3>
+          <div class="form-group">
+            <label class="form-label">Generator Status</label>
+            <select
+              formControlName="generatorStatus"
+              class="form-select"
+              (change)="updateAllGeneratorStatus()"
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Summary Section -->
+      <section class="form-section" *ngIf="getTotalGenerators() > 0">
+        <h2 class="section-title">Generator Summary</h2>
+
+        <div class="total-summary">
+          <div class="total-item">
+            <span class="total-label">Total Generators:</span>
+            <span class="total-value">{{ getTotalGenerators() }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Total Production:</span>
+            <span class="total-value">{{ getOverallTotalProduction() }} kWh</span>
+          </div>
+        </div>
+
+        <div class="type-breakdown">
+          <div
+            *ngFor="let type of availableTypes"
+            class="breakdown-item"
+            [class.has-generators]="getGeneratorCount(type[0]) > 0"
+          >
+            <span class="breakdown-icon">{{ type[1].icon }}</span>
+            <span class="breakdown-type">{{ type[1].label }}:</span>
+            <span class="breakdown-count">{{ getGeneratorCount(type[0]) }}</span>
+            <span class="breakdown-production">({{ getTotalProduction(type[0]) }} kWh)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Form Actions -->
+      <section class="form-actions">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="router.navigate(['/'])"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="userForm.invalid"
+        >
+          {{ isEditMode ? 'Update User' : 'Create User' }}
+        </button>
+      </section>
+    </form>
+  </div>
+</div>

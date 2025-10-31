@@ -4,6 +4,7 @@ import { environment } from '../../../environments/environment';
 import { Observable, map, tap, catchError, of, firstValueFrom } from 'rxjs';
 import { User } from '../../model/user';
 import { UserTransactionsMap } from '../../model/transaction';
+import { Api } from '../api';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +19,7 @@ export class UserService {
 
   private userAddedPage = new Map<string, number>();
   private http = inject(HttpClient);
+  private api = inject(Api);
   private apiUrl = `http://localhost:${environment.backendPort}`;
 
   public limit = 3;
@@ -91,14 +93,8 @@ export class UserService {
     this.userAddedPage.delete(user.id);
   }
 
-
   fetchUsersByIds(ids: string[]): Observable<User[]> {
-    if (!ids.length) return of([]);
-
-    const params = new URLSearchParams();
-    params.set('ids', ids.join(',')); // backend expects CSV or array
-
-    return this.http.get<User[]>(`${this.apiUrl}/users/by-ids?${params.toString()}`).pipe(
+    return this.api.fetchUsersByIdsApi(ids).pipe(
       map(users => {
         const selectedIds = new Set(this.selecterUsers().map(u => u.id));
         return users.filter(u => !selectedIds.has(u.id));
@@ -110,5 +106,6 @@ export class UserService {
       })
     );
   }
+
 
 }
