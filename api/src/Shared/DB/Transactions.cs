@@ -8,24 +8,40 @@ namespace Shared.DB
     {
         public static void ExecuteEnergyTransaction(EnergyTransaction tx)
         {
-            var users = UsersDB.GetUsersByIds([tx.BuyerId, tx.SellerId]);
-            var buyer = users.FirstOrDefault(u => u.Id == tx.BuyerId) ?? throw new Exception("Buyer not found.");
-            var seller = users.FirstOrDefault(u => u.Id == tx.SellerId) ?? throw new Exception("Seller not found.");
-
-            if (buyer.Balance < tx.TotalPrice)
-                throw new Exception("Buyer does not have enough balance.");
-            if (seller.EnergyStored < tx.EnergyAmount)
-                throw new Exception("Seller does not have enough energy.");
-
-            var newBuyerBalance = buyer.Balance - tx.TotalPrice;
-            var newBuyerEnergy = buyer.EnergyStored + tx.EnergyAmount;
-            var newSellerBalance = seller.Balance + tx.TotalPrice;
-            var newSellerEnergy = seller.EnergyStored - tx.EnergyAmount;
-
             using var conn = GetConnection();
             using var tran = conn.BeginTransaction();
             using var cmd = new NpgsqlCommand { Connection = conn, Transaction = tran };
 
+            cmd.CommandText = @"
+                SELECT id, balance, energy_stored
+                FROM users
+                WHERE id = ANY(@userIds)
+                FOR UPDATE;
+            ";
+            cmd.Parameters.AddWithValue("userIds", new[] { tx.BuyerId, tx.SellerId });
+
+            var users = new Dictionary<Guid, (decimal balance, decimal energy)>();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    users[reader.GetGuid(0)] = (reader.GetDecimal(1), reader.GetDecimal(2));
+                }
+            }
+
+            if (!users.TryGetValue(tx.BuyerId, out (decimal balance, decimal energy) buyer)) throw new Exception("Buyer not found.");
+            if (!users.TryGetValue(tx.SellerId, out (decimal balance, decimal energy) seller)) throw new Exception("Seller not found.");
+            if (buyer.balance < tx.TotalPrice)
+                throw new Exception("Buyer does not have enough balance.");
+            if (seller.energy < tx.EnergyAmount)
+                throw new Exception("Seller does not have enough energy.");
+
+            var newBuyerBalance = buyer.balance - tx.TotalPrice;
+            var newBuyerEnergy = buyer.energy + tx.EnergyAmount;
+            var newSellerBalance = seller.balance + tx.TotalPrice;
+            var newSellerEnergy = seller.energy - tx.EnergyAmount;
+
+            cmd.Parameters.Clear();
             cmd.CommandText = @"
                 UPDATE users
                 SET balance = @newBuyerBalance, energy_stored = @newBuyerEnergy, updated_at = NOW()
@@ -37,7 +53,7 @@ namespace Shared.DB
 
                 INSERT INTO transactions (seller_id, buyer_id, energy_amount, price_per_kwh, total_price, created_at)
                 VALUES (@sellerId, @buyerId, @energyAmount, @pricePerKwh, @totalPrice, NOW());
-            ";
+    ";
 
             cmd.Parameters.AddWithValue("buyerId", tx.BuyerId);
             cmd.Parameters.AddWithValue("sellerId", tx.SellerId);
@@ -52,6 +68,7 @@ namespace Shared.DB
             cmd.ExecuteNonQuery();
             tran.Commit();
         }
+
 
 
 
