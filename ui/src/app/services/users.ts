@@ -14,6 +14,7 @@ export class UserService {
   public selecterUsers = signal<User[]>([]);
   public transactions = signal<Record<string, UserTransactionsMap[]>>({});
   public generators = signal<Record<string, Generator[]>>({});
+  public searchTerm = signal('');
 
   private userAddedPage = new Map<string, number>();
   private http = inject(HttpClient);
@@ -26,7 +27,6 @@ export class UserService {
   fetchOfUsers(
     limit: number = this.limit,
     offset: number = this.offset,
-    name?: string
   ): Observable<User[]> {
     this.limit = limit;
     this.offset = offset;
@@ -35,9 +35,8 @@ export class UserService {
     const params = new URLSearchParams();
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
-    if (name) {
-      params.set('name', name);
-    }
+    params.set('name', this.searchTerm());
+
     return this.http.get<User[]>(`${this.apiUrl}/users?${params.toString()}`).pipe(
       map(users => {
         const selectedIds = new Set(this.selecterUsers().map(u => u.id));
@@ -53,9 +52,8 @@ export class UserService {
   async fetchUsers(
     limit: number = this.limit,
     offset: number = this.offset,
-    name?: string
   ) {
-    await firstValueFrom(this.fetchOfUsers(limit, offset, name));
+    await firstValueFrom(this.fetchOfUsers(limit, offset));
   }
 
 

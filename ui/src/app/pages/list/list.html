@@ -1,10 +1,13 @@
+<!-- Search bar -->
+<!-- Search bar -->
+<div class="search-bar-container">
+  <mat-form-field appearance="outline" class="search-bar">
+    <mat-label>Search users by name</mat-label>
+    <input matInput type="text" placeholder="Type at least 3 characters" (input)="onSearch($event)" />
+  </mat-form-field>
+</div>
 <!-- Top users grid -->
 <div class="users-grid">
-  <!-- Search bar -->
-  <div class="search-bar" style="margin-bottom: 1rem;">
-    <input type="text" matInput placeholder="Search users by name" (input)="onSearch($event)" />
-  </div>
-
   @for (user of userServ.users(); track $index) {
   <mat-card class="user-card">
     <!-- User Info -->
@@ -102,7 +105,8 @@
   <button mat-raised-button (click)="prevPage()" [disabled]="userServ.offset === 0">
     Previous
   </button>
-  <button mat-raised-button (click)="nextPage()">
+  <button mat-raised-button (click)="nextPage()"
+    [disabled]="userServ.users().length === 0 || userServ.users().length < userServ.limit">
     Next
   </button>
 </div>

@@ -6,10 +6,23 @@ import { GeneratorService } from '../../services/generator';
 import { MatCard } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
+import { MatListHarness } from '@angular/material/list/testing';
 
 @Component({
   selector: 'app-list',
-  imports: [MatCard, MatExpansionPanel, MatAccordion, MatExpansionPanelHeader, MatExpansionPanelTitle, RouterLink, MatButtonModule],
+  imports: [
+    MatCard,
+    MatExpansionPanel,
+    MatAccordion,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    RouterLink,
+    MatButtonModule,
+    MatInput,
+    MatLabel,
+    MatFormField,
+  ],
   templateUrl: './list.html',
   styleUrls: ['./list.sass']
 })
@@ -27,10 +40,10 @@ export class List implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     // All accordions are available here
   }
-
   async onSearch(event: Event) {
     const input = (event.target as HTMLInputElement).value.trim();
-    await this.userServ.fetchUsers(this.userServ.limit, 0, input);
+    this.userServ.searchTerm.set(input)
+    await this.userServ.fetchUsers(this.userServ.limit, 0);
   }
 
   async nextPage() {
