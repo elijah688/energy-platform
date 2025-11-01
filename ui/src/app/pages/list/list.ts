@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { GeneratorOutput, GeneratorType } from '../../model/generator';
 import { Api } from '../../services/api';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-list',
@@ -62,13 +63,15 @@ export class List implements OnInit, AfterViewInit {
     // Fire immediately, then repeat every 2s
     const fetch = async () => {
       await this.userServ.fetchUsers();
+      const userWithGens = await Promise.all(this.userServ.selecterUsers().map(u => firstValueFrom(this.api.fetchUserWithGenerators(u.id))))
+      this.userServ.selecterUsers.set(userWithGens.map(ug => ug.user))
     };
 
-    // Initial fetch
+
     fetch();
 
-    // Repeat every 2 seconds
     setInterval(fetch, 2000);
+
   }
 
   ngAfterViewInit() {
