@@ -8,6 +8,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './layout.html',
   styleUrl: './layout.sass',
 })
+
 export class Layout {
 
 }
