@@ -28,7 +28,7 @@ namespace TransactionServer
 
             var app = builder.Build();
             app.UseCors();
-            app.Urls.Add($"http://localhost:{port}");
+            app.Urls.Add($"http://0.0.0.0:{port}");
 
 
 
