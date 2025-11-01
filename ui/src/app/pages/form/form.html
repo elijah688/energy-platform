@@ -15,14 +15,25 @@
         <!-- User Info Section -->
         <section class="form-section">
           <h2 class="section-title">User Information</h2>
+
+          <!-- Name -->
           <mat-form-field appearance="outline" class="form-field-full">
             <mat-label>User Name</mat-label>
             <input matInput formControlName="name" placeholder="Enter user name" />
             @if (userForm.get('name')?.hasError('required') && userForm.get('name')?.touched) {
-              <mat-error>User name is required</mat-error>
+            <mat-error>User name is required</mat-error>
             }
             @if (userForm.get('name')?.hasError('minlength') && userForm.get('name')?.touched) {
-              <mat-error>User name must be at least 2 characters</mat-error>
+            <mat-error>User name must be at least 2 characters</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Balance -->
+          <mat-form-field appearance="outline" class="form-field-full">
+            <mat-label>User Balance ($)</mat-label>
+            <input matInput type="number" formControlName="balance" placeholder="Enter balance" />
+            @if (userForm.get('balance')?.hasError('min') && userForm.get('balance')?.touched) {
+            <mat-error>Balance cannot be negative</mat-error>
             }
           </mat-form-field>
         </section>
@@ -36,76 +47,73 @@
 
           <div class="generator-controls">
             @for (type of generatorTypes(); track type.typeKey) {
-              <mat-card class="generator-control-card"
-                        [class.selected]="selectedType() === type.typeKey"
-                        (click)="selectType(type.typeKey)">
-                <mat-card-header class="generator-type-header">
-                  <mat-icon matCardAvatar>{{ type.icon }}</mat-icon>
-                  <mat-card-title>{{ type.label }}</mat-card-title>
-                  <mat-card-subtitle>{{ type.productionRateKwh }} kWh each</mat-card-subtitle>
-                </mat-card-header>
+            <mat-card class="generator-control-card" [class.selected]="selectedType() === type.typeKey"
+              (click)="selectType(type.typeKey)">
+              <mat-card-header class="generator-type-header">
+                <mat-icon matCardAvatar>{{ type.icon }}</mat-icon>
+                <mat-card-title>{{ type.label }}</mat-card-title>
+                <mat-card-subtitle>{{ type.productionRateKwh }} kWh each</mat-card-subtitle>
+              </mat-card-header>
 
-                <mat-card-content>
-                  <div class="generator-counter">
-                    <button mat-icon-button type="button"
-                            (click)="decrement(type.typeKey); $event.stopPropagation()"
-                            [disabled]="getGeneratorCount(type.typeKey) === 0">
-                      <mat-icon>remove</mat-icon>
-                    </button>
+              <mat-card-content>
+                <div class="generator-counter">
+                  <button mat-icon-button type="button" (click)="decrement(type.typeKey); $event.stopPropagation()"
+                    [disabled]="getGeneratorCount(type.typeKey) === 0">
+                    <mat-icon>remove</mat-icon>
+                  </button>
 
-                    <div class="counter-display">
-                      <span class="counter-value">{{ getGeneratorCount(type.typeKey) }}</span>
-                      <span class="counter-label">generators</span>
-                    </div>
-
-                    <button mat-icon-button type="button"
-                            (click)="increment(type.typeKey); $event.stopPropagation()">
-                      <mat-icon>add</mat-icon>
-                    </button>
+                  <div class="counter-display">
+                    <span class="counter-value">{{ getGeneratorCount(type.typeKey) }}</span>
+                    <span class="counter-label">generators</span>
                   </div>
 
-                  <div class="generator-total">
-                    Total: {{ getTotalProduction(type.typeKey) }} kWh
-                  </div>
-                </mat-card-content>
-              </mat-card>
+                  <button mat-icon-button type="button" (click)="increment(type.typeKey); $event.stopPropagation()">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+
+                <div class="generator-total">
+                  Total: {{ getTotalProduction(type.typeKey) }} kWh
+                </div>
+              </mat-card-content>
+            </mat-card>
             }
           </div>
         </section>
 
         <!-- Summary Section -->
         @if (totalGenerators() > 0) {
-          <section class="form-section">
-            <h2 class="section-title">Generator Summary</h2>
+        <section class="form-section">
+          <h2 class="section-title">Generator Summary</h2>
 
-            <mat-card appearance="outlined" class="summary-card">
-              <mat-card-content>
-                <div class="total-summary">
-                  <div class="total-item">
-                    <span class="total-label">Total Generators:</span>
-                    <span class="total-value">{{ totalGenerators() }}</span>
-                  </div>
-                  <div class="total-item">
-                    <span class="total-label">Total Production:</span>
-                    <span class="total-value">{{ overallProduction() }} kWh</span>
-                  </div>
+          <mat-card appearance="outlined" class="summary-card">
+            <mat-card-content>
+              <div class="total-summary">
+                <div class="total-item">
+                  <span class="total-label">Total Generators:</span>
+                  <span class="total-value">{{ totalGenerators() }}</span>
                 </div>
-
-                <mat-divider class="summary-divider"></mat-divider>
-
-                <div class="type-breakdown">
-                  @for (type of generatorTypes(); track type.typeKey) {
-                    <div class="breakdown-item">
-                      <mat-icon class="breakdown-icon">{{ type.icon }}</mat-icon>
-                      <span class="breakdown-type">{{ type.label }}:</span>
-                      <span class="breakdown-count">{{ getGeneratorCount(type.typeKey) }}</span>
-                      <span class="breakdown-production">({{ getTotalProduction(type.typeKey) }} kWh)</span>
-                    </div>
-                  }
+                <div class="total-item">
+                  <span class="total-label">Total Production:</span>
+                  <span class="total-value">{{ overallProduction() }} kWh</span>
                 </div>
-              </mat-card-content>
-            </mat-card>
-          </section>
+              </div>
+
+              <mat-divider class="summary-divider"></mat-divider>
+
+              <div class="type-breakdown">
+                @for (type of generatorTypes(); track type.typeKey) {
+                <div class="breakdown-item">
+                  <mat-icon class="breakdown-icon">{{ type.icon }}</mat-icon>
+                  <span class="breakdown-type">{{ type.label }}:</span>
+                  <span class="breakdown-count">{{ getGeneratorCount(type.typeKey) }}</span>
+                  <span class="breakdown-production">({{ getTotalProduction(type.typeKey) }} kWh)</span>
+                </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </section>
         }
 
         <!-- Form Actions -->

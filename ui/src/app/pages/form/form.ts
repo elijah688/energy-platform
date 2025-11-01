@@ -42,7 +42,9 @@ export class Form implements OnInit {
   private router = inject(Router)
   // Initialize immediately to satisfy Angular formGroup binding
   userForm: FormGroup = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]]
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    balance: [0, [Validators.required, Validators.min(0)]],
+
   });
 
   user = signal<User | null>(null);
@@ -82,7 +84,10 @@ export class Form implements OnInit {
         this.generatorCounts.set(counts);
 
         this.user.set(userWithGens.user);
-        this.userForm.patchValue({ name: userWithGens.user.name });
+        this.userForm.patchValue({
+          name: userWithGens.user.name,
+          balance: userWithGens.user.balance
+        });
       } else {
         console.log(JSON.stringify(userWithGens, null, 4))
         console.warn('User generators missing', userWithGens);
@@ -120,6 +125,7 @@ export class Form implements OnInit {
     };
 
     user.name = this.userForm.value.name;
+    user.balance = this.userForm.value.balance;
     user.updatedAt = now.toISOString();
 
     const generatorsList: GeneratorOutput[] = this.generatorTypes()
