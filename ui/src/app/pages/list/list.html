@@ -19,7 +19,8 @@
     <div class="user-info">
       <div><strong>{{ user.name }}</strong></div>
       <div>Balance: ${{ user.balance }}</div>
-      <div>Energy: {{ user.energyStored }} kWh</div>
+
+      <div [class.energy-updated]="energyHighlight[user.id]">Energy: {{ user.energyStored }} kWh</div>
       <div class="user-id">{{ user.id }}</div>
     </div>
 
@@ -49,7 +50,7 @@
             <div class="generator-production">{{ gen.totalKwhPerType }} kWh</div>
           </div>
           } @empty {
-          <p class="no-generators">No generators</p>
+          <p class="no-generators">No more generators</p>
           }
         </div>
       </mat-expansion-panel>
@@ -77,7 +78,7 @@
           </div>
         </div>
         } @empty {
-        <p class="no-transactions">No transactions</p>
+        <p class="no-transactions">No more transactions</p>
         }
         <div class="pagination">
           <button mat-button (click)="prevUserTxPage(user.id)"
@@ -117,7 +118,9 @@
       <div class="user-info">
         <div><strong>{{ user.name }}</strong></div>
         <div>Balance: ${{ user.balance }}</div>
-        <div>Energy: {{ user.energyStored }} kWh</div>
+        <div [class.energy-updated]="energyHighlight[user.id]">
+          Energy: {{ user.energyStored }} kWh
+        </div>
       </div>
       <button mat-raised-button color="warn" (click)="userServ.deselectUser(user)">
         Remove

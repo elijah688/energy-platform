@@ -9,7 +9,8 @@
     <div class="user-info">
       <div>Name: {{ userService.selecterUsers()[0].name }}</div>
       <div>Balance: {{ projectedBalance(userService.selecterUsers()[0]) }}</div>
-      <div>Energy Stored: {{ projectedEnergy(userService.selecterUsers()[0]) }}</div>
+      <div [class.energy-updated]="energyHighlight[userService.selecterUsers()[1].id]">Energy Stored: {{
+        projectedEnergy(userService.selecterUsers()[0]) }}</div>
     </div>
   </mat-card>
 
@@ -26,7 +27,8 @@
     <div class="user-info">
       <div>Name: {{ userService.selecterUsers()[1].name }}</div>
       <div>Balance: {{ projectedBalance(userService.selecterUsers()[1]) }}</div>
-      <div>Energy Stored: {{ projectedEnergy(userService.selecterUsers()[1]) }}</div>
+      <div [class.energy-updated]="energyHighlight[userService.selecterUsers()[1].id]">Energy Stored: {{
+        projectedEnergy(userService.selecterUsers()[1]) }}</div>
     </div>
   </mat-card>
 </div>

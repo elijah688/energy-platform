@@ -35,9 +35,22 @@ export class Trade implements OnInit {
   sellerIsLeft = true;
   amount: number = 0.0;
   pricePerKwh: number = 0.0;
+  energyCache: Record<string, number> = {};
+  energyHighlight: Record<string, boolean> = {};
 
   ngOnInit() {
     console.log('Selected transaction users:', this.userService.selecterUsers());
+  }
+
+  ngDoCheck() {
+    this.userService.selecterUsers().forEach(user => {
+      const prev = this.energyCache[user.id] ?? user.energyStored;
+      if (user.energyStored !== prev) {
+        this.energyHighlight[user.id] = true;
+        setTimeout(() => this.energyHighlight[user.id] = false, 500);
+      }
+      this.energyCache[user.id] = user.energyStored;
+    });
   }
 
   swapSeller() {

@@ -37,6 +37,9 @@ export class List implements OnInit, AfterViewInit {
   genService = inject(GeneratorService);
   api = inject(Api);
 
+  energyCache: Record<string, number> = {};
+  energyHighlight: Record<string, boolean> = {};
+
   @ViewChildren(MatAccordion) accordions!: QueryList<MatAccordion>;
 
   // Generator type configuration
@@ -60,18 +63,50 @@ export class List implements OnInit, AfterViewInit {
   }
 
   private startUserPolling() {
-    // Fire immediately, then repeat every 2s
     const fetch = async () => {
+      // 1️⃣ Fetch main users
       await this.userServ.fetchUsers();
-      const userWithGens = await Promise.all(this.userServ.selecterUsers().map(u => firstValueFrom(this.api.fetchUserWithGenerators(u.id))))
-      this.userServ.selecterUsers.set(userWithGens.map(ug => ug.user))
+
+      // 2️⃣ Check energy changes for main users
+      this.userServ.users().forEach(user => {
+        const prevEnergy = this.energyCache[user.id] ?? user.energyStored;
+        if (user.energyStored !== prevEnergy) {
+          this.energyHighlight[user.id] = true;
+          setTimeout(() => this.energyHighlight[user.id] = false, 500);
+        }
+        this.energyCache[user.id] = user.energyStored;
+      });
+
+      // 3️⃣ Fetch selected users with generators
+      const updatedSelected = await Promise.all(
+        this.userServ.selecterUsers().map(u =>
+          firstValueFrom(this.api.fetchUserWithGenerators(u.id))
+        )
+      );
+
+      // 4️⃣ Update selected users in-place
+      this.userServ.selecterUsers().forEach(user => {
+        const updated = updatedSelected.find(u => u.user.id === user.id)?.user;
+        if (!updated) return;
+
+        const prevEnergy = this.energyCache[user.id] ?? user.energyStored;
+        if (updated.energyStored !== prevEnergy) {
+          this.energyHighlight[user.id] = true;
+          setTimeout(() => this.energyHighlight[user.id] = false, 500);
+        }
+
+        this.energyCache[user.id] = updated.energyStored;
+
+        // Update in-place so DOM bindings stay intact
+        user.energyStored = updated.energyStored;
+        user.balance = updated.balance;
+        // Add any other fields you want to sync
+      });
     };
 
-
+    // Fire immediately, then every 2 seconds
     fetch();
-
     setInterval(fetch, 2000);
-
   }
 
   ngAfterViewInit() {
