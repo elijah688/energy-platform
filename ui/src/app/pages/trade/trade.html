@@ -1,0 +1,54 @@
+<!-- Transaction users row -->
+<div class="transaction-users-row">
+
+  <!-- Left user -->
+  <mat-card class="user-card picked" [class.seller]="!sellerIsLeft">
+    <div class="role-label">
+      {{ sellerIsLeft ? 'Seller' : 'Buyer' }}
+    </div>
+    <div class="user-info">
+      <div>Name: {{ userService.selecterUsers()[0].name }}</div>
+      <div>Balance: {{ projectedBalance(userService.selecterUsers()[0]) }}</div>
+      <div [class.energy-updated]="energyHighlight[userService.selecterUsers()[1].id]">Energy Stored: {{
+        projectedEnergy(userService.selecterUsers()[0]) }}</div>
+    </div>
+  </mat-card>
+
+  <!-- Swap button -->
+  <button mat-raised-button color="primary" class="swap-button" (click)="swapSeller()">
+    {{ sellerIsLeft ? '→' : '←' }}
+  </button>
+
+  <!-- Right user -->
+  <mat-card class="user-card picked" [class.seller]="sellerIsLeft">
+    <div class="role-label">
+      {{ sellerIsLeft ? 'Buyer' : 'Seller' }}
+    </div>
+    <div class="user-info">
+      <div>Name: {{ userService.selecterUsers()[1].name }}</div>
+      <div>Balance: {{ projectedBalance(userService.selecterUsers()[1]) }}</div>
+      <div [class.energy-updated]="energyHighlight[userService.selecterUsers()[1].id]">Energy Stored: {{
+        projectedEnergy(userService.selecterUsers()[1]) }}</div>
+    </div>
+  </mat-card>
+</div>
+
+<!-- Transaction Input -->
+<div class="transaction-inputs">
+  <mat-form-field appearance="outline">
+    <mat-label>Amount (kWh)</mat-label>
+    <input matInput type="number" [(ngModel)]="amount" min="0">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Price per kWh</mat-label>
+    <input matInput type="number" [(ngModel)]="pricePerKwh" min="0">
+  </mat-form-field>
+</div>
+
+<!-- Execute Transaction -->
+<div class="execute-transaction">
+  <button mat-raised-button color="primary" (click)="executeTransaction()">
+    Execute Transaction
+  </button>
+</div>
