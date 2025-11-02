@@ -1,0 +1,63 @@
+.banner
+  background: #880e4f          // dark rose shade
+  color: #fff
+  padding: 1rem 2rem
+  display: flex
+  justify-content: space-between
+  align-items: center
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15)
+  border-bottom: 2px solid #f48fb1
+  position: relative
+  z-index: 10
+
+.banner h1
+  font-size: 1.75rem
+  font-weight: 700
+  letter-spacing: 1px
+  margin: 0
+  color: #ffebee        // soft highlight for the title
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3)
+
+.nav-links
+  display: flex
+  gap: 2rem
+  align-items: center
+
+  a
+    color: #f8bbd0              // light rose accent
+    text-decoration: none
+    font-weight: 600
+    font-size: 1rem
+    position: relative
+    transition: color 0.25s ease, transform 0.2s ease
+
+    &:hover
+      color: #f48fb1             // slightly darker rose
+      transform: translateY(-2px)
+
+    &.active
+      color: #ff80ab
+      &::after
+        content: ""
+        display: block
+        height: 3px
+        background: #ff80ab
+        border-radius: 2px
+        position: absolute
+        bottom: -4px
+        left: 0
+        right: 0
+        animation: slide-in 0.3s ease forwards
+
+@keyframes slide-in
+  0%
+    width: 0
+    opacity: 0
+  100%
+    width: 100%
+    opacity: 1
+
+.content
+  padding: 2rem
+  background: #fff0f5
+  min-height: calc(100vh - 72px)  // keep full page height minus navbar
