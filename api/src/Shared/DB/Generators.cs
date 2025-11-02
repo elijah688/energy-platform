@@ -18,7 +18,7 @@ namespace Shared.DB
             cmd.Parameters.AddWithValue("userId", userId);
 
             using var reader = cmd.ExecuteReader();
-            var generators = new List<GeneratorOutput>();
+            var generators = new List<Generator>();
             decimal totalKwh = 0;
 
             while (reader.Read())
@@ -27,7 +27,7 @@ namespace Shared.DB
                 var count = reader.GetInt32(1);
                 var totalKwhPerType = reader.GetDecimal(2);
 
-                generators.Add(new GeneratorOutput(type, count, totalKwhPerType));
+                generators.Add(new Generator(type, count, totalKwhPerType));
                 totalKwh += totalKwhPerType;
             }
 

@@ -74,7 +74,7 @@ namespace Shared.DB
             using var conn = GetConnection();
 
 
-            var generators = new List<GeneratorOutput>();
+            var generators = new List<Generator>();
             User? user = null;
 
             var sql = @"
@@ -103,7 +103,7 @@ namespace Shared.DB
                 var genType = reader["generator_type"];
                 if (genType != DBNull.Value)
                 {
-                    generators.Add(new GeneratorOutput(
+                    generators.Add(new Generator(
                         reader.GetString(reader.GetOrdinal("generator_type")),
                         reader.GetInt32(reader.GetOrdinal("count")),
                         reader.GetDecimal(reader.GetOrdinal("total_kwh_rate"))

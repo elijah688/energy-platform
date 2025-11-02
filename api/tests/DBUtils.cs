@@ -31,7 +31,7 @@ namespace tests
 
             cmd.CommandText = @"
                 TRUNCATE TABLE transactions cascade;
-                TRUNCATE TABLE generators cascade;
+                TRUNCATE TABLE user_generators cascade;
                 TRUNCATE TABLE users cascade;
             ";
 

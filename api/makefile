@@ -1,6 +1,6 @@
-PROJECT_NAME = EnergyMarket
-CONFIG = Release
-RID = osx-arm64
+PROJECT_NAME=EnergyMarket
+CONFIG=Release
+RID=osx-arm64
 
 .PHONY: server clean publish db-up db-down check-db-up migrate db-reset
 
@@ -16,16 +16,16 @@ clean:
 publish: clean
 	dotnet publish -c $(CONFIG) -r $(RID) --self-contained true /p:PublishSingleFile=true
 
+export DB_DIR=db
+export SQL_DIR=sql
+export DB_USER=postgres
+export DB_PASS=postgres
+export DB_NAME=postgres
+export DB_HOST=localhost
+export DB_PORT=6969
+export DB_CONTAINER_PORT=5432
+export DB_CONNECTION = Host=localhost;Port=6969;Username=postgres;Password=postgres;Database=postgres;Pooling=true;MaxPoolSize=20
 
-
-DB_DIR = db
-SQL_DIR = sql
-DB_USER = postgres
-DB_PASS = postgres
-DB_NAME = postgres
-DB_HOST = localhost
-DB_PORT = 6969
-DB_CONTAINER_PORT=5432
 # -----------------------------
 # Docker / DB commands
 # -----------------------------
