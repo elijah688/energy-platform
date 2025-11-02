@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_NAME: EnergyMarket
+      CONFIG: Release
+      RID: osx-arm64
+      DB_DIR: db
+      SQL_DIR: sql
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: postgres
+      DB_HOST: localhost
+      DB_PORT: 6969
+      DB_CONTAINER_PORT: 5432
+      DB_CONNECTION: Host=localhost;Port=6969;Username=postgres;Password=postgres;Database=postgres;Pooling=true;MaxPoolSize=20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Clean & Restore
+        working-directory: ./api
+        run: make clean
+
+      - name: Run Tests
+        working-directory: ./api
+        run: make test
+
+      - name: Publish
+        working-directory: ./api
+        run: make publish
+
+      - name: Build Docker Image
+        working-directory: ./api
+        run: docker build -t energy-platform:latest .

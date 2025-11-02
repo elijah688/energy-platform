@@ -1,6 +1,5 @@
 PROJECT_NAME=EnergyMarket
 CONFIG=Release
-RID=osx-arm64
 
 .PHONY: server clean publish db-up db-down check-db-up migrate db-reset
 
@@ -12,9 +11,12 @@ server:
 
 clean:
 	dotnet clean
+	dotnet restore
+	
 
 publish: clean
-	dotnet publish -c $(CONFIG) -r $(RID) --self-contained true /p:PublishSingleFile=true
+	dotnet publish ./cmd/GeneratorDaemon/GeneratorDaemon.csproj -c Release -r linux-arm64 --self-contained false
+	dotnet publish ./cmd/TransactionServer/TransactionServer.csproj -c Release -r linux-arm64 --self-contained false
 
 export DB_DIR=db
 export SQL_DIR=sql
