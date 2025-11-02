@@ -67,5 +67,5 @@ db-reset: db-down db-up check-db-up migrate
 	@echo "Database reset and migrated."
 
 test: db-reset
-	dotnet test
+	dotnet test --logger "console;verbosity=detailed"
 
